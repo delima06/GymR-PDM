@@ -3,8 +3,11 @@ import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'data/repositories/exercise_repository.dart';
 import 'data/repositories/workout_repository.dart';
+import 'data/repositories/history_repository.dart';
+import 'ui/active_workout/active_workout_view_model.dart';
 import 'ui/dashboard/dashboard_view_model.dart';
 import 'ui/workouts/workouts_view_model.dart';
+import 'ui/progress/progress_view_model.dart';
 import 'ui/main_navigation_scaffold.dart';
 
 void main() async {
@@ -13,6 +16,7 @@ void main() async {
   // Instâncias singleton dos repositórios
   final exerciseRepository = ExerciseRepository();
   final workoutRepository = WorkoutRepository();
+  final historyRepository = HistoryRepository();
 
   runApp(
     MultiProvider(
@@ -20,6 +24,7 @@ void main() async {
         // Injeção dos Repositórios para a camada de Dados (Data Layer)
         Provider<ExerciseRepository>.value(value: exerciseRepository),
         Provider<WorkoutRepository>.value(value: workoutRepository),
+        Provider<HistoryRepository>.value(value: historyRepository),
 
         // Injeção dos ViewModels (UI Layer - MVVM)
         ChangeNotifierProvider(
@@ -27,6 +32,12 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => WorkoutsViewModel(workoutRepository: workoutRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ActiveWorkoutViewModel(workoutRepository: workoutRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ProgressViewModel(historyRepository: historyRepository),
         ),
       ],
       child: const GymRApp(),

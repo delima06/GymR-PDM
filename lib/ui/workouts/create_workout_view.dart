@@ -5,6 +5,7 @@ import '../../data/repositories/exercise_repository.dart';
 import '../../data/repositories/workout_repository.dart';
 import '../../domain/models/exercise.dart';
 import '../../domain/models/workout.dart';
+import '../exercises/exercise_detail_view.dart';
 
 class CreateWorkoutView extends StatefulWidget {
   const CreateWorkoutView({super.key});
@@ -102,7 +103,21 @@ class _CreateWorkoutViewState extends State<CreateWorkoutView> {
                             fontSize: 12,
                           ),
                         ),
-                        trailing: const Icon(Icons.add_circle_outline, color: AppColors.primaryNeon),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.info_outline, color: AppColors.textSecondary, size: 20),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => ExerciseDetailView(exercise: ex)),
+                                );
+                              },
+                            ),
+                            const Icon(Icons.add_circle_outline, color: AppColors.primaryNeon),
+                          ],
+                        ),
                         onTap: () => Navigator.pop(context, ex),
                       );
                     },
