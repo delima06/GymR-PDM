@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme/app_colors.dart';
+import '../widgets/gymr_logo_title.dart';
 import 'progress_view_model.dart';
 
 class ProgressView extends StatefulWidget {
@@ -106,7 +107,7 @@ class _ProgressViewState extends State<ProgressView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Histórico e Evolução', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 22)),
+        title: const GymrLogoTitle(title: 'Histórico & Evolução'),
       ),
       body: RefreshIndicator(
         color: AppColors.primaryNeon,

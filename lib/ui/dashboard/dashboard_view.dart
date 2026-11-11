@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../widgets/gymr_logo_title.dart';
 import 'dashboard_view_model.dart';
 
 class DashboardView extends StatefulWidget {
@@ -35,35 +36,7 @@ class _DashboardViewState extends State<DashboardView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.primaryNeon.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.primaryNeon.withValues(alpha: 0.3)),
-              ),
-              child: const Text(
-                'GymR',
-                style: TextStyle(
-                  color: AppColors.primaryNeon,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 16,
-                  letterSpacing: 1.2,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              'Início',
-              style: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 22,
-              ),
-            ),
-          ],
-        ),
+        title: const GymrLogoTitle(title: 'Início'),
         actions: [
           IconButton(
             icon: Container(

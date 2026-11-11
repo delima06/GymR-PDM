@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../widgets/gymr_logo_title.dart';
 import 'workouts_view_model.dart';
 import 'create_workout_view.dart';
 
@@ -30,10 +31,7 @@ class _WorkoutsViewState extends State<WorkoutsView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Minhas Fichas',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 22),
-        ),
+        title: const GymrLogoTitle(title: 'Minhas Fichas'),
         actions: [
           IconButton(
             icon: Container(

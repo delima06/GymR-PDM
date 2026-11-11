@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../widgets/gymr_logo_title.dart';
 import '../exercises/exercise_detail_view.dart';
 import 'active_workout_view_model.dart';
 
@@ -93,7 +94,7 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
 
     if (vm.exerciseItems.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Treino Ativo', style: TextStyle(fontWeight: FontWeight.w800))),
+        appBar: AppBar(title: const GymrLogoTitle(title: 'Treino Ativo')),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
@@ -126,23 +127,7 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.primaryNeon.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                'GymR',
-                style: TextStyle(color: AppColors.primaryNeon, fontWeight: FontWeight.w900, fontSize: 14),
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Text('Treino Ativo', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
-          ],
-        ),
+        title: const GymrLogoTitle(title: 'Treino Ativo'),
         actions: [
           // Cronômetro de tempo total com luz pulsante
           Container(
