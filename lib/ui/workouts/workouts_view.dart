@@ -42,7 +42,8 @@ class _WorkoutsViewState extends State<WorkoutsView> {
                 color: AppColors.primaryNeon,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.add, color: AppColors.textOnNeon, size: 20),
+              child:
+                  const Icon(Icons.add, color: AppColors.textOnNeon, size: 20),
             ),
             onPressed: () async {
               final created = await Navigator.of(context).push<bool>(
@@ -65,7 +66,7 @@ class _WorkoutsViewState extends State<WorkoutsView> {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: _filters.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
                 final filter = _filters[index];
                 final isSelected = viewModel.selectedFilter == filter;
@@ -77,14 +78,19 @@ class _WorkoutsViewState extends State<WorkoutsView> {
                     backgroundColor: AppColors.surfaceElevated,
                     selectedColor: AppColors.primaryNeon,
                     labelStyle: TextStyle(
-                      color: isSelected ? AppColors.textOnNeon : AppColors.textSecondary,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                      color: isSelected
+                          ? AppColors.textOnNeon
+                          : AppColors.textSecondary,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w600,
                       fontSize: 12,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                       side: BorderSide(
-                        color: isSelected ? AppColors.primaryNeon : AppColors.surfaceBorder,
+                        color: isSelected
+                            ? AppColors.primaryNeon
+                            : AppColors.surfaceBorder,
                       ),
                     ),
                     showCheckmark: false,
@@ -99,13 +105,16 @@ class _WorkoutsViewState extends State<WorkoutsView> {
           // Lista de Fichas
           Expanded(
             child: viewModel.isLoading
-                ? const Center(child: CircularProgressIndicator(color: AppColors.primaryNeon))
+                ? const Center(
+                    child:
+                        CircularProgressIndicator(color: AppColors.primaryNeon))
                 : viewModel.filteredWorkouts.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.note_alt_outlined, size: 54, color: AppColors.textMuted),
+                            const Icon(Icons.note_alt_outlined,
+                                size: 54, color: AppColors.textMuted),
                             const SizedBox(height: 12),
                             const Text(
                               'Nenhuma ficha encontrada',
@@ -118,7 +127,8 @@ class _WorkoutsViewState extends State<WorkoutsView> {
                             const SizedBox(height: 6),
                             const Text(
                               'Clique no botão "+" acima para montar sua ficha.',
-                              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                              style: TextStyle(
+                                  fontSize: 13, color: AppColors.textSecondary),
                             ),
                           ],
                         ),
@@ -126,7 +136,7 @@ class _WorkoutsViewState extends State<WorkoutsView> {
                     : ListView.separated(
                         padding: const EdgeInsets.all(20),
                         itemCount: viewModel.filteredWorkouts.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 14),
+                        separatorBuilder: (_, __) => const SizedBox(height: 14),
                         itemBuilder: (context, index) {
                           final workout = viewModel.filteredWorkouts[index];
                           return _buildWorkoutCard(context, workout, viewModel);
@@ -138,7 +148,8 @@ class _WorkoutsViewState extends State<WorkoutsView> {
     );
   }
 
-  Widget _buildWorkoutCard(BuildContext context, dynamic workout, WorkoutsViewModel vm) {
+  Widget _buildWorkoutCard(
+      BuildContext context, dynamic workout, WorkoutsViewModel vm) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -168,7 +179,8 @@ class _WorkoutsViewState extends State<WorkoutsView> {
                 ),
               ),
               PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert, size: 20, color: AppColors.textSecondary),
+                icon: const Icon(Icons.more_vert,
+                    size: 20, color: AppColors.textSecondary),
                 color: AppColors.surfaceElevated,
                 onSelected: (value) {
                   if (value == 'delete') {
@@ -178,7 +190,8 @@ class _WorkoutsViewState extends State<WorkoutsView> {
                 itemBuilder: (context) => [
                   const PopupMenuItem(
                     value: 'delete',
-                    child: Text('Excluir Ficha', style: TextStyle(color: AppColors.error)),
+                    child: Text('Excluir Ficha',
+                        style: TextStyle(color: AppColors.error)),
                   ),
                 ],
               ),
@@ -193,11 +206,13 @@ class _WorkoutsViewState extends State<WorkoutsView> {
               color: AppColors.textPrimary,
             ),
           ),
-          if (workout.description != null && workout.description.isNotEmpty) ...[
+          if (workout.description != null &&
+              workout.description.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
               workout.description,
-              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              style:
+                  const TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
           ],
           const SizedBox(height: 12),
@@ -214,7 +229,8 @@ class _WorkoutsViewState extends State<WorkoutsView> {
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () => widget.onStartWorkoutById?.call(workout.id),
-              icon: const Icon(Icons.play_arrow_rounded, color: AppColors.textOnNeon, size: 20),
+              icon: const Icon(Icons.play_arrow_rounded,
+                  color: AppColors.textOnNeon, size: 20),
               label: const Text('INICIAR ESTE TREINO'),
             ),
           ),

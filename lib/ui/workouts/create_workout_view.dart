@@ -80,7 +80,7 @@ class _CreateWorkoutViewState extends State<CreateWorkoutView> {
                     controller: scrollController,
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     itemCount: exercises.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 8),
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {
                       final ex = exercises[index];
                       return ListTile(
@@ -414,8 +414,11 @@ class _CreateWorkoutViewState extends State<CreateWorkoutView> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: _exercises.length,
-                onReorderItem: (oldIndex, newIndex) {
+                onReorder: (oldIndex, newIndex) {
                   setState(() {
+                    if (oldIndex < newIndex) {
+                      newIndex -= 1;
+                    }
                     final item = _exercises.removeAt(oldIndex);
                     _exercises.insert(newIndex, item);
                   });

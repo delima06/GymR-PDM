@@ -121,7 +121,7 @@ class _ProgressViewState extends State<ProgressView> {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: _tabs.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
                   final isSelected = _selectedTab == index;
                   return Center(
@@ -327,7 +327,7 @@ class _ProgressViewState extends State<ProgressView> {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       itemCount: vm.sessions.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 10),
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final session = vm.sessions[index];
         return Container(
@@ -412,7 +412,7 @@ class _ProgressViewState extends State<ProgressView> {
               : ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   itemCount: vm.measurements.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 10),
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
                     final m = vm.measurements[index];
                     final dateStr = DateFormat('dd/MM/yyyy').format(m.date);
