@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../data/repositories/history_repository.dart';
 import '../widgets/gymr_logo_title.dart';
+import '../profile/profile_view_model.dart';
 import 'progress_view_model.dart';
 
 class ProgressView extends StatefulWidget {
@@ -20,16 +22,6 @@ class _ProgressViewState extends State<ProgressView> {
     {'name': '1RM Estimado', 'icon': Icons.star_rounded},
   ];
 
-  String _selectedExerciseName = 'Supino Reto com Barra';
-  String _gainText = '+15 kg';
-
-  final List<Map<String, String>> _exerciseOptions = [
-    {'name': 'Supino Reto com Barra', 'gain': '+15 kg'},
-    {'name': 'Agachamento Livre', 'gain': '+20 kg'},
-    {'name': 'Levantamento Terra', 'gain': '+25 kg'},
-    {'name': 'Desenvolvimento Militar', 'gain': '+10 kg'},
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -43,6 +35,7 @@ class _ProgressViewState extends State<ProgressView> {
     final bodyFatController = TextEditingController();
     final armsController = TextEditingController();
     final waistController = TextEditingController();
+    final chestController = TextEditingController();
 
     showDialog(
       context: context,
@@ -84,6 +77,12 @@ class _ProgressViewState extends State<ProgressView> {
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   decoration: const InputDecoration(labelText: 'Circunferência Cintura (cm)'),
                 ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: chestController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(labelText: 'Circunferência Tórax (cm)'),
+                ),
               ],
             ),
           ),
@@ -93,19 +92,24 @@ class _ProgressViewState extends State<ProgressView> {
               child: const Text('CANCELAR', style: TextStyle(color: AppColors.textSecondary)),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 final weight = double.tryParse(weightController.text);
                 final bf = double.tryParse(bodyFatController.text);
                 final arms = double.tryParse(armsController.text);
                 final waist = double.tryParse(waistController.text);
+                final chest = double.tryParse(chestController.text);
 
-                vm.addMeasurement(
+                Navigator.pop(context);
+                await vm.addMeasurement(
                   weightKg: weight,
                   bodyFatPercentage: bf,
                   armsCm: arms,
                   waistCm: waist,
+                  chestCm: chest,
                 );
-                Navigator.pop(context);
+                if (context.mounted) {
+                  context.read<ProfileViewModel>().loadProfileData();
+                }
               },
               child: const Text('SALVAR'),
             ),
@@ -115,7 +119,15 @@ class _ProgressViewState extends State<ProgressView> {
     );
   }
 
-  void _showExercisePicker(BuildContext context) {
+  void _showExercisePicker(BuildContext context, ProgressViewModel vm) {
+    final exercises = <String>{
+      ...vm.prs.map((p) => p.exerciseName),
+      'Supino Reto com Barra',
+      'Agachamento Livre com Barra',
+      'Levantamento Terra',
+      'Desenvolvimento Militar',
+    }.toList();
+
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF18191D),
@@ -150,9 +162,9 @@ class _ProgressViewState extends State<ProgressView> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                ...List.generate(_exerciseOptions.length, (i) {
-                  final opt = _exerciseOptions[i];
-                  final isSelected = opt['name'] == _selectedExerciseName;
+                ...List.generate(exercises.length, (i) {
+                  final name = exercises[i];
+                  final isSelected = name == vm.selectedExerciseName;
                   return ListTile(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     tileColor: isSelected ? const Color(0xFF22242A) : null,
@@ -162,7 +174,7 @@ class _ProgressViewState extends State<ProgressView> {
                       size: 20,
                     ),
                     title: Text(
-                      opt['name']!,
+                      name,
                       style: TextStyle(
                         color: isSelected ? AppColors.primaryNeon : Colors.white,
                         fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
@@ -173,10 +185,7 @@ class _ProgressViewState extends State<ProgressView> {
                         ? const Icon(Icons.check_rounded, color: AppColors.primaryNeon, size: 20)
                         : null,
                     onTap: () {
-                      setState(() {
-                        _selectedExerciseName = opt['name']!;
-                        _gainText = opt['gain']!;
-                      });
+                      vm.selectExerciseForChart(name);
                       Navigator.pop(context);
                     },
                   );
@@ -251,7 +260,7 @@ class _ProgressViewState extends State<ProgressView> {
                   const SizedBox(height: 22),
 
                   // 3. Seção Evolução de Carga com Dropdown & Gráfico Neon
-                  _buildLoadEvolutionSection(context),
+                  _buildLoadEvolutionSection(context, vm),
                   const SizedBox(height: 24),
 
                   // 4. Seção Medidas Corporais (Cards + Botão Registrar)
@@ -428,7 +437,13 @@ class _ProgressViewState extends State<ProgressView> {
     );
   }
 
-  Widget _buildLoadEvolutionSection(BuildContext context) {
+  Widget _buildLoadEvolutionSection(BuildContext context, ProgressViewModel vm) {
+    final matchingPR = vm.prs.where((p) =>
+        p.exerciseName.toLowerCase().contains(vm.selectedExerciseName.toLowerCase()));
+    final gainText = matchingPR.isNotEmpty
+        ? '+${(matchingPR.first.maxWeightKg * 0.15).toInt()} kg'
+        : '+15 kg';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -456,7 +471,7 @@ class _ProgressViewState extends State<ProgressView> {
                 children: [
                   Expanded(
                     child: InkWell(
-                      onTap: () => _showExercisePicker(context),
+                      onTap: () => _showExercisePicker(context, vm),
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -471,7 +486,7 @@ class _ProgressViewState extends State<ProgressView> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                _selectedExerciseName,
+                                vm.selectedExerciseName,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w700,
@@ -500,7 +515,7 @@ class _ProgressViewState extends State<ProgressView> {
                         const Icon(Icons.trending_up, color: AppColors.primaryNeon, size: 16),
                         const SizedBox(width: 4),
                         Text(
-                          _gainText,
+                          gainText,
                           style: const TextStyle(
                             color: AppColors.primaryNeon,
                             fontWeight: FontWeight.w900,
@@ -519,7 +534,7 @@ class _ProgressViewState extends State<ProgressView> {
                 height: 140,
                 width: double.infinity,
                 child: CustomPaint(
-                  painter: _NeonChartPainter(),
+                  painter: _NeonChartPainter(loadPoints: vm.selectedExercisePoints),
                 ),
               ),
             ],
@@ -640,13 +655,21 @@ class _ProgressViewState extends State<ProgressView> {
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: AppColors.primaryNeon.withValues(alpha: 0.2)),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.arrow_downward_rounded, color: AppColors.primaryNeon, size: 12),
-                    SizedBox(width: 2),
+                    Icon(
+                      (vm.deltaWeight ?? -2.1) <= 0
+                          ? Icons.arrow_downward_rounded
+                          : Icons.arrow_upward_rounded,
+                      color: AppColors.primaryNeon,
+                      size: 12,
+                    ),
+                    const SizedBox(width: 2),
                     Text(
-                      '-2,1 kg',
-                      style: TextStyle(
+                      vm.deltaWeight != null
+                          ? '${vm.deltaWeight! >= 0 ? '+' : ''}${vm.deltaWeight!.toStringAsFixed(1)} kg'
+                          : '-2,1 kg',
+                      style: const TextStyle(
                         color: AppColors.primaryNeon,
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
@@ -722,13 +745,21 @@ class _ProgressViewState extends State<ProgressView> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Row(
+                    Row(
                       children: [
-                        Icon(Icons.arrow_upward_rounded, color: AppColors.primaryNeon, size: 12),
-                        SizedBox(width: 2),
+                        Icon(
+                          (vm.deltaArms ?? 1.2) >= 0
+                              ? Icons.arrow_upward_rounded
+                              : Icons.arrow_downward_rounded,
+                          color: AppColors.primaryNeon,
+                          size: 12,
+                        ),
+                        const SizedBox(width: 2),
                         Text(
-                          '+1,2 cm',
-                          style: TextStyle(
+                          vm.deltaArms != null
+                              ? '${vm.deltaArms! >= 0 ? '+' : ''}${vm.deltaArms!.toStringAsFixed(1)} cm'
+                              : '+1,2 cm',
+                          style: const TextStyle(
                             color: AppColors.primaryNeon,
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
@@ -800,13 +831,21 @@ class _ProgressViewState extends State<ProgressView> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Row(
+                    Row(
                       children: [
-                        Icon(Icons.arrow_downward_rounded, color: AppColors.primaryNeon, size: 12),
-                        SizedBox(width: 2),
+                        Icon(
+                          (vm.deltaWaist ?? -3.5) <= 0
+                              ? Icons.arrow_downward_rounded
+                              : Icons.arrow_upward_rounded,
+                          color: AppColors.primaryNeon,
+                          size: 12,
+                        ),
+                        const SizedBox(width: 2),
                         Text(
-                          '-3,5 cm',
-                          style: TextStyle(
+                          vm.deltaWaist != null
+                              ? '${vm.deltaWaist! >= 0 ? '+' : ''}${vm.deltaWaist!.toStringAsFixed(1)} cm'
+                              : '-3,5 cm',
+                          style: const TextStyle(
                             color: AppColors.primaryNeon,
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
@@ -847,6 +886,10 @@ class _ProgressViewState extends State<ProgressView> {
   }
 
   Widget _buildRecentHistorySection(ProgressViewModel vm) {
+    final recentSession = vm.sessions.isNotEmpty ? vm.sessions.first : null;
+    final topPr = vm.prs.isNotEmpty ? vm.prs.first : null;
+    final latestM = vm.measurements.isNotEmpty ? vm.measurements.first : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -874,34 +917,55 @@ class _ProgressViewState extends State<ProgressView> {
         ),
         const SizedBox(height: 10),
 
-        _buildHistoryItem(
-          icon: Icons.monitor_weight_outlined,
-          title: 'Registro de Medidas',
-          dateText: 'Ontem',
-          subtitle: 'Peso: 78,4 kg • Braço: 39,5 cm',
-          badgeText: 'CONCLUÍDO',
-          isNeonBadge: true,
-        ),
+        if (latestM != null)
+          _buildHistoryItem(
+            icon: Icons.monitor_weight_outlined,
+            title: 'Registro de Medidas',
+            dateText: 'Recente',
+            subtitle: 'Peso: ${latestM.weightKg?.toStringAsFixed(1) ?? "78.4"} kg • Braço: ${latestM.armsCm?.toStringAsFixed(1) ?? "39.5"} cm',
+            badgeText: 'CONCLUÍDO',
+            isNeonBadge: true,
+          ),
         const SizedBox(height: 8),
 
-        _buildHistoryItem(
-          icon: Icons.workspace_premium_outlined,
-          title: 'Novo Recorde (PR)',
-          dateText: '3 dias atrás',
-          subtitle: 'Supino Reto: 100 kg × 4 reps',
-          badgeText: '+5 kg PR',
-          isNeonBadge: true,
-        ),
+        if (topPr != null)
+          _buildHistoryItem(
+            icon: Icons.workspace_premium_outlined,
+            title: 'Recorde (PR): ${topPr.exerciseName}',
+            dateText: 'Recorde',
+            subtitle: '${topPr.maxWeightKg.toInt()} kg × ${topPr.maxRepsAtMaxWeight} reps • 1RM: ${topPr.estimated1RM.toInt()} kg',
+            badgeText: topPr.shouldProgressWeight ? '+ PROGRESSÃO' : 'RECORD',
+            isNeonBadge: true,
+          )
+        else
+          _buildHistoryItem(
+            icon: Icons.workspace_premium_outlined,
+            title: 'Novo Recorde (PR)',
+            dateText: '3 dias atrás',
+            subtitle: 'Supino Reto: 80 kg × 8 reps',
+            badgeText: '+5 kg PR',
+            isNeonBadge: true,
+          ),
         const SizedBox(height: 8),
 
-        _buildHistoryItem(
-          icon: Icons.check_circle_outline_rounded,
-          title: 'Check-in Físico Semanal',
-          dateText: 'Semana 12',
-          subtitle: 'Metas de BF e circunferência atingidas',
-          badgeText: 'AVALIADO',
-          isNeonBadge: false,
-        ),
+        if (recentSession != null)
+          _buildHistoryItem(
+            icon: Icons.check_circle_outline_rounded,
+            title: recentSession.workoutName,
+            dateText: recentSession.formattedDuration,
+            subtitle: 'Volume total: ${recentSession.totalVolumeKg.toInt()} kg',
+            badgeText: 'FINALIZADO',
+            isNeonBadge: false,
+          )
+        else
+          _buildHistoryItem(
+            icon: Icons.check_circle_outline_rounded,
+            title: 'Check-in Físico Semanal',
+            dateText: 'Semana 12',
+            subtitle: 'Metas de BF e circunferência atingidas',
+            badgeText: 'AVALIADO',
+            isNeonBadge: false,
+          ),
       ],
     );
   }
@@ -940,7 +1004,7 @@ class _ProgressViewState extends State<ProgressView> {
               children: [
                 Row(
                   children: [
-                    Flexible(
+                    Expanded(
                       child: Text(
                         title,
                         style: const TextStyle(
@@ -1081,6 +1145,10 @@ class _ProgressViewState extends State<ProgressView> {
 }
 
 class _NeonChartPainter extends CustomPainter {
+  final List<ExerciseLoadPoint> loadPoints;
+
+  _NeonChartPainter({this.loadPoints = const []});
+
   @override
   void paint(Canvas canvas, Size size) {
     final gridPaint = Paint()
@@ -1093,12 +1161,37 @@ class _NeonChartPainter extends CustomPainter {
     canvas.drawLine(Offset(0, size.height * 0.55), Offset(size.width, size.height * 0.55), gridPaint);
     canvas.drawLine(Offset(0, size.height * 0.9), Offset(size.width, size.height * 0.9), gridPaint);
 
-    final points = [
-      Offset(size.width * 0.08, size.height * 0.88),
-      Offset(size.width * 0.35, size.height * 0.65),
-      Offset(size.width * 0.65, size.height * 0.40),
-      Offset(size.width * 0.92, size.height * 0.16),
-    ];
+    final List<Offset> points = [];
+    final List<String> labels = [];
+
+    if (loadPoints.length >= 2) {
+      final minWeight = loadPoints.map((e) => e.weightKg).reduce((a, b) => a < b ? a : b);
+      final maxWeight = loadPoints.map((e) => e.weightKg).reduce((a, b) => a > b ? a : b);
+      final weightRange = (maxWeight - minWeight).clamp(10.0, 100.0);
+
+      for (int i = 0; i < loadPoints.length; i++) {
+        final p = loadPoints[i];
+        final dx = size.width * (0.08 + (0.84 * (i / (loadPoints.length - 1))));
+        final normalizedWeight = (p.weightKg - (minWeight - 5.0)) / (weightRange + 10.0);
+        final dy = size.height * (0.88 - (0.72 * normalizedWeight.clamp(0.0, 1.0)));
+        points.add(Offset(dx, dy));
+        labels.add('${p.weightKg.toInt()}kg');
+      }
+    } else if (loadPoints.length == 1) {
+      final p = loadPoints.first;
+      points.add(Offset(size.width * 0.15, size.height * 0.70));
+      labels.add('${(p.weightKg - 10).clamp(10, 200).toInt()}kg');
+      points.add(Offset(size.width * 0.85, size.height * 0.35));
+      labels.add('${p.weightKg.toInt()}kg');
+    } else {
+      points.addAll([
+        Offset(size.width * 0.08, size.height * 0.88),
+        Offset(size.width * 0.35, size.height * 0.65),
+        Offset(size.width * 0.65, size.height * 0.40),
+        Offset(size.width * 0.92, size.height * 0.16),
+      ]);
+      labels.addAll(['70kg', '80kg', '92kg', '100kg']);
+    }
 
     final path = Path();
     path.moveTo(points[0].dx, points[0].dy);
@@ -1137,9 +1230,6 @@ class _NeonChartPainter extends CustomPainter {
       ..strokeJoin = StrokeJoin.round;
 
     canvas.drawPath(path, linePaint);
-
-    // Pontos e Labels de Carga
-    final labels = ['70kg', '80kg', '92kg', '100kg'];
 
     for (int i = 0; i < points.length; i++) {
       final pt = points[i];
@@ -1182,5 +1272,7 @@ class _NeonChartPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _NeonChartPainter oldDelegate) {
+    return oldDelegate.loadPoints != loadPoints;
+  }
 }

@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../widgets/gymr_logo_title.dart';
 import '../exercises/exercise_detail_view.dart';
+import '../dashboard/dashboard_view_model.dart';
+import '../progress/progress_view_model.dart';
+import '../profile/profile_view_model.dart';
 import 'active_workout_view_model.dart';
 
 class ActiveWorkoutView extends StatefulWidget {
@@ -67,6 +70,11 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
                 Navigator.pop(context);
                 final success = await vm.finishWorkout();
                 if (success) {
+                  if (context.mounted) {
+                    context.read<DashboardViewModel>().loadDashboardData();
+                    context.read<ProgressViewModel>().loadProgressData();
+                    context.read<ProfileViewModel>().loadProfileData();
+                  }
                   messenger.showSnackBar(
                     const SnackBar(
                       content: Text('Treino concluído com sucesso! Salvo no histórico.'),

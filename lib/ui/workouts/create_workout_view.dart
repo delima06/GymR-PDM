@@ -9,7 +9,9 @@ import '../widgets/gymr_logo_title.dart';
 import '../exercises/exercise_detail_view.dart';
 
 class CreateWorkoutView extends StatefulWidget {
-  const CreateWorkoutView({super.key});
+  final Workout? workoutToEdit;
+
+  const CreateWorkoutView({super.key, this.workoutToEdit});
 
   @override
   State<CreateWorkoutView> createState() => _CreateWorkoutViewState();
@@ -28,6 +30,18 @@ class _CreateWorkoutViewState extends State<CreateWorkoutView> {
   bool _isSaving = false;
 
   final List<String> _splitOptions = ['ABC', 'Upper/Lower', 'Full Body', 'Push/Pull/Legs', 'Personalizado'];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.workoutToEdit != null) {
+      final w = widget.workoutToEdit!;
+      _nameController.text = w.name;
+      _descriptionController.text = w.description ?? '';
+      _selectedSplit = _splitOptions.contains(w.split) ? w.split : 'Personalizado';
+      _exercises.addAll(w.exercises);
+    }
+  }
 
   @override
   void dispose() {
@@ -252,10 +266,12 @@ class _CreateWorkoutViewState extends State<CreateWorkoutView> {
 
     setState(() => _isSaving = true);
 
-    final workoutId = const Uuid().v4();
-    final exercisesWithWorkoutId = _exercises.map((e) {
+    final workoutId = widget.workoutToEdit?.id ?? const Uuid().v4();
+    final exercisesWithWorkoutId = _exercises.asMap().entries.map((entry) {
+      final index = entry.key;
+      final e = entry.value;
       return WorkoutExercise(
-        id: e.id,
+        id: e.id.isNotEmpty ? e.id : const Uuid().v4(),
         workoutId: workoutId,
         exerciseId: e.exerciseId,
         exerciseName: e.exerciseName,
@@ -264,7 +280,7 @@ class _CreateWorkoutViewState extends State<CreateWorkoutView> {
         maxReps: e.maxReps,
         initialWeight: e.initialWeight,
         restSeconds: e.restSeconds,
-        orderIndex: e.orderIndex,
+        orderIndex: index,
       );
     }).toList();
 
@@ -274,7 +290,7 @@ class _CreateWorkoutViewState extends State<CreateWorkoutView> {
       description: _descriptionController.text.trim(),
       split: _selectedSplit,
       exercises: exercisesWithWorkoutId,
-      createdAt: DateTime.now(),
+      createdAt: widget.workoutToEdit?.createdAt ?? DateTime.now(),
     );
 
     try {
@@ -299,7 +315,7 @@ class _CreateWorkoutViewState extends State<CreateWorkoutView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const GymrLogoTitle(title: 'Nova Ficha'),
+        title: GymrLogoTitle(title: widget.workoutToEdit != null ? 'Editar Ficha' : 'Nova Ficha'),
         actions: [
           TextButton(
             onPressed: _isSaving ? null : _saveWorkout,

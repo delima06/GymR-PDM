@@ -6,7 +6,7 @@ import '../widgets/gymr_logo_title.dart';
 import 'dashboard_view_model.dart';
 
 class DashboardView extends StatefulWidget {
-  final VoidCallback? onStartWorkout;
+  final void Function([String? workoutId])? onStartWorkout;
   final VoidCallback? onNavigateToWorkouts;
 
   const DashboardView({
@@ -819,7 +819,7 @@ class _DashboardViewState extends State<DashboardView> {
                   width: double.infinity,
                   height: 52,
                   child: ElevatedButton.icon(
-                    onPressed: widget.onStartWorkout,
+                    onPressed: () => widget.onStartWorkout?.call(workout.id),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryNeon,
                       foregroundColor: AppColors.textOnNeon,

@@ -36,6 +36,15 @@ class _WorkoutsViewState extends State<WorkoutsView> {
     }
   }
 
+  void _navigateToEditWorkout(BuildContext context, WorkoutsViewModel vm, Workout workout) async {
+    final updated = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => CreateWorkoutView(workoutToEdit: workout)),
+    );
+    if (updated == true && mounted) {
+      vm.loadWorkouts();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<WorkoutsViewModel>();
@@ -143,7 +152,7 @@ class _WorkoutsViewState extends State<WorkoutsView> {
 
                         // 5. Botão Tracejado: Adicionar Exercício
                         InkWell(
-                          onTap: () => _navigateToCreateWorkout(context, viewModel),
+                          onTap: () => _navigateToEditWorkout(context, viewModel, currentWorkout),
                           borderRadius: BorderRadius.circular(18),
                           child: Container(
                             width: double.infinity,
@@ -426,14 +435,32 @@ class _WorkoutsViewState extends State<WorkoutsView> {
             ),
             color: AppColors.surfaceElevated,
             onSelected: (value) {
-              if (value == 'delete') {
+              if (value == 'edit') {
+                _navigateToEditWorkout(context, vm, workout);
+              } else if (value == 'delete') {
                 vm.deleteWorkout(workout.id);
               }
             },
             itemBuilder: (context) => [
               const PopupMenuItem(
+                value: 'edit',
+                child: Row(
+                  children: [
+                    Icon(Icons.edit_outlined, size: 18, color: AppColors.textPrimary),
+                    SizedBox(width: 8),
+                    Text('Editar Ficha', style: TextStyle(color: AppColors.textPrimary)),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
                 value: 'delete',
-                child: Text('Excluir Ficha', style: TextStyle(color: AppColors.error)),
+                child: Row(
+                  children: [
+                    Icon(Icons.delete_outline, size: 18, color: AppColors.error),
+                    SizedBox(width: 8),
+                    Text('Excluir Ficha', style: TextStyle(color: AppColors.error)),
+                  ],
+                ),
               ),
             ],
           ),

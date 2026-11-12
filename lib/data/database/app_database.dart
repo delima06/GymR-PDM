@@ -20,7 +20,7 @@ class AppDatabase {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -29,6 +29,20 @@ class AppDatabase {
           );
           if (countResult == null || countResult == 0) {
             await _seedDefaultWorkouts(db);
+          }
+        }
+        if (oldVersion < 3) {
+          final measurementCount = Sqflite.firstIntValue(
+            await db.rawQuery('SELECT COUNT(*) FROM measurements'),
+          );
+          if (measurementCount == null || measurementCount == 0) {
+            await _seedInitialMeasurements(db);
+          }
+          final sessionCount = Sqflite.firstIntValue(
+            await db.rawQuery('SELECT COUNT(*) FROM workout_sessions'),
+          );
+          if (sessionCount == null || sessionCount == 0) {
+            await _seedInitialSessions(db);
           }
         }
       },
@@ -127,6 +141,96 @@ class AppDatabase {
     // Seed inicial com catálogo padrão e fichas de exemplo (Stitch)
     await _seedExercises(db);
     await _seedDefaultWorkouts(db);
+    await _seedInitialMeasurements(db);
+    await _seedInitialSessions(db);
+  }
+
+  Future<void> _seedInitialMeasurements(Database db) async {
+    final now = DateTime.now();
+    final thirtyDaysAgo = now.subtract(const Duration(days: 30));
+    final yesterday = now.subtract(const Duration(days: 1));
+
+    await db.insert('measurements', {
+      'id': 'm-baseline',
+      'date': thirtyDaysAgo.toIso8601String(),
+      'weightKg': 80.5,
+      'bodyFatPercentage': 16.0,
+      'chestCm': 100.0,
+      'armsCm': 38.3,
+      'waistCm': 82.5,
+      'thighsCm': 58.0,
+      'calvesCm': 37.5,
+      'photoPaths': null,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+    await db.insert('measurements', {
+      'id': 'm-current',
+      'date': yesterday.toIso8601String(),
+      'weightKg': 78.4,
+      'bodyFatPercentage': 14.8,
+      'chestCm': 102.5,
+      'armsCm': 39.5,
+      'waistCm': 79.0,
+      'thighsCm': 59.5,
+      'calvesCm': 38.0,
+      'photoPaths': null,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<void> _seedInitialSessions(Database db) async {
+    final now = DateTime.now();
+    final twoDaysAgo = now.subtract(const Duration(days: 2));
+    final fourDaysAgo = now.subtract(const Duration(days: 4));
+
+    // Sessão 1 (4 dias atrás): Treino B
+    await db.insert('workout_sessions', {
+      'id': 'session-seed-1',
+      'workoutId': 'workout-b',
+      'workoutName': 'Treino B - Costas & Bíceps',
+      'startTime': fourDaysAgo.toIso8601String(),
+      'endTime': fourDaysAgo.add(const Duration(minutes: 58)).toIso8601String(),
+      'durationSeconds': 3480, // 58 min
+      'totalVolumeKg': 7400.0,
+      'completed': 1,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+    // Séries da Sessão 1
+    await db.insert('workout_sets', {
+      'id': 'ws-seed-1',
+      'sessionId': 'session-seed-1',
+      'exerciseId': 'ex-2',
+      'setNumber': 1,
+      'weightKg': 60.0,
+      'reps': 10,
+      'completed': 1,
+      'timestamp': fourDaysAgo.toIso8601String(),
+      'estimated1RM': 80.0,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+    // Sessão 2 (2 dias atrás): Treino A
+    await db.insert('workout_sessions', {
+      'id': 'session-seed-2',
+      'workoutId': 'workout-a',
+      'workoutName': 'Treino A - Peito, Ombros & Tríceps',
+      'startTime': twoDaysAgo.toIso8601String(),
+      'endTime': twoDaysAgo.add(const Duration(minutes: 62)).toIso8601String(),
+      'durationSeconds': 3720, // 62 min
+      'totalVolumeKg': 8200.0,
+      'completed': 1,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+    // Séries da Sessão 2
+    await db.insert('workout_sets', {
+      'id': 'ws-seed-2',
+      'sessionId': 'session-seed-2',
+      'exerciseId': 'ex-1',
+      'setNumber': 1,
+      'weightKg': 80.0,
+      'reps': 8,
+      'completed': 1,
+      'timestamp': twoDaysAgo.toIso8601String(),
+      'estimated1RM': 101.3,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> _seedDefaultWorkouts(Database db) async {

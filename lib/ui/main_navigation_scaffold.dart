@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'widgets/stitch_bottom_nav_bar.dart';
 import 'dashboard/dashboard_view.dart';
 import 'workouts/workouts_view.dart';
 import 'active_workout/active_workout_view.dart';
+import 'active_workout/active_workout_view_model.dart';
 import 'progress/progress_view.dart';
 import 'profile/profile_view.dart';
 
@@ -28,13 +30,14 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
       _selectedWorkoutIdForActive = workoutId;
       _currentIndex = 2; // Aba central Treinar/Treino Ativo
     });
+    context.read<ActiveWorkoutViewModel>().startWorkoutSession(workoutId);
   }
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       DashboardView(
-        onStartWorkout: () => _startWorkout(),
+        onStartWorkout: ([id]) => _startWorkout(id),
         onNavigateToWorkouts: () => _onTabTapped(1),
       ),
       WorkoutsView(

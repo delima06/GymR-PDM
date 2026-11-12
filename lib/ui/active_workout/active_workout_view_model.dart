@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
+import '../../core/utils/epley_calculator.dart';
 import '../../data/database/app_database.dart';
 import '../../data/repositories/workout_repository.dart';
 import '../../data/repositories/exercise_repository.dart';
@@ -254,7 +255,7 @@ class ActiveWorkoutViewModel extends ChangeNotifier {
         if (s.isCompleted) {
           totalVolume += (s.weightKg * s.reps);
           // Estimativa de 1RM com fórmula de Epley: Peso * (1 + Reps / 30)
-          final epley1RM = s.reps > 1 ? s.weightKg * (1 + (s.reps / 30.0)) : s.weightKg;
+          final epley1RM = EpleyCalculator.calculate1RM(s.weightKg, s.reps);
 
           setsToSave.add({
             'id': const Uuid().v4(),

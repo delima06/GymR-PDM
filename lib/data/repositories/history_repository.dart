@@ -1,4 +1,5 @@
 import 'package:sqflite/sqflite.dart';
+import '../../core/utils/epley_calculator.dart';
 import '../database/app_database.dart';
 
 class WorkoutSessionRecord {
@@ -84,6 +85,20 @@ class MeasurementRecord {
   }
 }
 
+class ExerciseLoadPoint {
+  final double weightKg;
+  final int reps;
+  final double estimated1RM;
+  final DateTime date;
+
+  ExerciseLoadPoint({
+    required this.weightKg,
+    required this.reps,
+    required this.estimated1RM,
+    required this.date,
+  });
+}
+
 class HistoryRepository {
   final AppDatabase _dbProvider;
 
@@ -130,11 +145,11 @@ class HistoryRepository {
       final exName = row['exerciseName'] as String;
       final weight = (row['weightKg'] as num).toDouble();
       final reps = row['reps'] as int;
-      final e1RM = (row['estimated1RM'] as num?)?.toDouble() ?? (reps > 1 ? weight * (1 + (reps / 30.0)) : weight);
+      final e1RM = (row['estimated1RM'] as num?)?.toDouble() ??
+          EpleyCalculator.calculate1RM(weight, reps);
 
       if (!prMap.containsKey(exId)) {
-        // Sugestão de progressão: se fez 12 ou mais repetições na carga mais pesada, sugere subir peso!
-        final shouldProgress = reps >= 12;
+        final shouldProgress = EpleyCalculator.shouldProgressWeight(reps);
 
         prMap[exId] = ExercisePRRecord(
           exerciseId: exId,
@@ -168,6 +183,33 @@ class HistoryRepository {
       orderBy: 'date DESC',
     );
     return maps.map((m) => MeasurementRecord.fromMap(m)).toList();
+  }
+
+  /// Retorna os pontos de carga históricos ordenados por tempo para o gráfico
+  Future<List<ExerciseLoadPoint>> getExerciseLoadHistory(String exerciseName) async {
+    final db = await _dbProvider.database;
+    final results = await db.rawQuery('''
+      SELECT ws.weightKg, ws.reps, ws.estimated1RM, ws.timestamp
+      FROM workout_sets ws
+      JOIN exercises e ON ws.exerciseId = e.id
+      WHERE (e.name LIKE ? OR ? LIKE '%' || e.name || '%') AND ws.completed = 1
+      ORDER BY ws.timestamp ASC
+    ''', ['%$exerciseName%', exerciseName]);
+
+    return results.map((r) {
+      final weight = (r['weightKg'] as num).toDouble();
+      final reps = (r['reps'] as num).toInt();
+      final e1RM = (r['estimated1RM'] as num?)?.toDouble() ??
+          EpleyCalculator.calculate1RM(weight, reps);
+      final date = DateTime.tryParse(r['timestamp'] as String? ?? '') ?? DateTime.now();
+
+      return ExerciseLoadPoint(
+        weightKg: weight,
+        reps: reps,
+        estimated1RM: e1RM,
+        date: date,
+      );
+    }).toList();
   }
 }
 
