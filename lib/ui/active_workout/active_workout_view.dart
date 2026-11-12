@@ -20,7 +20,8 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final vm = context.read<ActiveWorkoutViewModel>();
-      if (!vm.isSessionActive) {
+      // Somente inicia sessão automaticamente se um ID de treino foi passado explicitamente
+      if (!vm.isSessionActive && widget.workoutId != null) {
         vm.startWorkoutSession(widget.workoutId);
       }
     });
@@ -92,31 +93,47 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
       );
     }
 
-    if (vm.exerciseItems.isEmpty) {
+    if (!vm.isSessionActive || vm.exerciseItems.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: const GymrLogoTitle(title: 'Treino Ativo')),
         body: Center(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(28.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.fitness_center_outlined, size: 56, color: AppColors.textMuted),
-                const SizedBox(height: 16),
-                const Text(
-                  'Nenhum exercício carregado',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceCard,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.surfaceBorder),
+                  ),
+                  child: const Icon(Icons.timer_outlined, size: 56, color: AppColors.primaryNeon),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 24),
                 const Text(
-                  'Crie ou selecione uma ficha na aba "Fichas" para iniciar a execução do treino.',
+                  'Nenhum Treino em Andamento',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
                 ),
-                const SizedBox(height: 20),
-                ElevatedButton(
+                const SizedBox(height: 10),
+                const Text(
+                  'Escolha uma de suas fichas cadastradas ou inicie o treino sugerido do dia para ativar o cronômetro e o registro de séries.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4),
+                ),
+                const SizedBox(height: 28),
+                ElevatedButton.icon(
                   onPressed: () => vm.startWorkoutSession(null),
-                  child: const Text('RECARREGAR TREINO'),
+                  icon: const Icon(Icons.play_arrow_rounded, size: 24),
+                  label: const Text('INICIAR TREINO DO DIA'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryNeon,
+                    foregroundColor: AppColors.textOnNeon,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
                 ),
               ],
             ),
@@ -310,7 +327,7 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
             style: const TextStyle(
               fontSize: 38,
               fontWeight: FontWeight.w900,
-              color: AppColors.textPrimary,
+              color: AppColors.primaryNeon,
               fontFamily: 'monospace',
               letterSpacing: 1.5,
             ),
@@ -325,23 +342,47 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
               minHeight: 6,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              OutlinedButton.icon(
-                onPressed: () => vm.addRestSeconds(30),
-                icon: const Icon(Icons.add, size: 16, color: AppColors.primaryNeon),
-                label: const Text('+30s', style: TextStyle(color: AppColors.primaryNeon, fontSize: 12)),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.surfaceBorder),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => vm.addRestSeconds(15),
+                  icon: const Icon(Icons.add, size: 14, color: AppColors.primaryNeon),
+                  label: const Text('+15s', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    side: const BorderSide(color: AppColors.surfaceBorder),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
-              TextButton(
-                onPressed: () => vm.skipRest(),
-                child: const Text('Pular Descanso', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => vm.addRestSeconds(30),
+                  icon: const Icon(Icons.add, size: 14, color: AppColors.primaryNeon),
+                  label: const Text('+30s', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    side: const BorderSide(color: AppColors.surfaceBorder),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => vm.skipRest(),
+                  icon: const Icon(Icons.skip_next, size: 16, color: AppColors.textOnNeon),
+                  label: const Text('Pular', style: TextStyle(color: AppColors.textOnNeon, fontSize: 11, fontWeight: FontWeight.w800)),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    backgroundColor: AppColors.primaryNeon,
+                    foregroundColor: AppColors.textOnNeon,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
               ),
             ],
           ),
@@ -370,53 +411,59 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 24,
-                    height: 24,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primaryNeon,
-                      shape: BoxShape.circle,
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '${exIndex + 1}',
-                      style: const TextStyle(
-                        color: AppColors.textOnNeon,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 12,
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primaryNeon,
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '${exIndex + 1}',
+                        style: const TextStyle(
+                          color: AppColors.textOnNeon,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    item.exercise.exerciseName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        item.exercise.exerciseName,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  IconButton(
-                    icon: const Icon(Icons.info_outline, size: 18, color: AppColors.primaryNeon),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () async {
-                      final ex = await vm.getExerciseDetails(item.exercise.exerciseId);
-                      if (ex != null && context.mounted) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => ExerciseDetailView(exercise: ex)),
-                        );
-                      }
-                    },
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    IconButton(
+                      icon: const Icon(Icons.info_outline, size: 18, color: AppColors.primaryNeon),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () async {
+                        final ex = await vm.getExerciseDetails(item.exercise.exerciseId);
+                        if (ex != null && context.mounted) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => ExerciseDetailView(exercise: ex)),
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Text(
-                '${item.exercise.restSeconds}s descanso',
+                '${item.exercise.restSeconds}s desc.',
                 style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
               ),
             ],

@@ -8,6 +8,7 @@ import 'ui/active_workout/active_workout_view_model.dart';
 import 'ui/dashboard/dashboard_view_model.dart';
 import 'ui/workouts/workouts_view_model.dart';
 import 'ui/progress/progress_view_model.dart';
+import 'ui/profile/profile_view_model.dart';
 import 'ui/main_navigation_scaffold.dart';
 
 void main() async {
@@ -28,7 +29,10 @@ void main() async {
 
         // Injeção dos ViewModels (UI Layer - MVVM)
         ChangeNotifierProvider(
-          create: (_) => DashboardViewModel(workoutRepository: workoutRepository),
+          create: (_) => DashboardViewModel(
+            workoutRepository: workoutRepository,
+            historyRepository: historyRepository,
+          ),
         ),
         ChangeNotifierProvider(
           create: (_) => WorkoutsViewModel(workoutRepository: workoutRepository),
@@ -38,6 +42,12 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => ProgressViewModel(historyRepository: historyRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ProfileViewModel(
+            historyRepository: historyRepository,
+            workoutRepository: workoutRepository,
+          ),
         ),
       ],
       child: const GymRApp(),

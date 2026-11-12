@@ -14,16 +14,17 @@ class WorkoutsViewModel extends ChangeNotifier {
   List<Workout> _workouts = [];
   List<Workout> get workouts => _workouts;
 
-  String _selectedFilter = 'Todos';
-  String get selectedFilter => _selectedFilter;
+  int _selectedWorkoutIndex = 0;
+  int get selectedWorkoutIndex => _selectedWorkoutIndex;
 
-  List<Workout> get filteredWorkouts {
-    if (_selectedFilter == 'Todos') return _workouts;
-    return _workouts.where((w) => w.split.toLowerCase() == _selectedFilter.toLowerCase()).toList();
+  Workout? get selectedWorkout {
+    if (_workouts.isEmpty) return null;
+    final index = _selectedWorkoutIndex.clamp(0, _workouts.length - 1);
+    return _workouts[index];
   }
 
-  void setFilter(String filter) {
-    _selectedFilter = filter;
+  void selectWorkout(int index) {
+    _selectedWorkoutIndex = index;
     notifyListeners();
   }
 
@@ -33,6 +34,9 @@ class WorkoutsViewModel extends ChangeNotifier {
 
     try {
       _workouts = await _workoutRepository.getAllWorkouts();
+      if (_selectedWorkoutIndex >= _workouts.length) {
+        _selectedWorkoutIndex = 0;
+      }
     } catch (e) {
       debugPrint('Erro ao carregar fichas: $e');
     } finally {
@@ -48,5 +52,15 @@ class WorkoutsViewModel extends ChangeNotifier {
     } catch (e) {
       debugPrint('Erro ao deletar treino: $e');
     }
+  }
+
+  Future<void> removeExerciseFromSelectedWorkout(String exerciseId) async {
+    final current = selectedWorkout;
+    if (current == null) return;
+
+    final updatedExercises = current.exercises.where((e) => e.id != exerciseId).toList();
+    final updatedWorkout = current.copyWith(exercises: updatedExercises);
+    await _workoutRepository.saveWorkout(updatedWorkout);
+    await loadWorkouts();
   }
 }

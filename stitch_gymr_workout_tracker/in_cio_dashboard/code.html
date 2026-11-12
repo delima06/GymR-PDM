@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="dark" lang="pt-BR" style=""><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"><meta content="mobile_tab" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+<!DOCTYPE html><html class="dark" lang="pt-BR"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"><meta content="mobile_tab" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
   darkMode: "class",
   theme: {
     extend: {
@@ -59,32 +59,19 @@
 </section>
 
 <!-- Dupla de Métricas Rápidas (Cards escuros com ícones circulares neon) -->
-<div class="grid grid-cols-2 gap-3">
-  <div class="bg-[#141519] border border-white/[0.06] rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden min-h-[105px]">
-    <div class="flex items-center justify-between mb-2">
-      <span class="text-[11px] font-bold uppercase tracking-wider text-[#8E939E]">Cardíaco</span>
-      <div class="w-8 h-8 rounded-full bg-[#10D85E]/15 border border-[#10D85E]/30 flex items-center justify-center text-[#10D85E]">
-        <span class="material-symbols-outlined text-[17px]">favorite</span>
-      </div>
+<div class="w-full bg-[#141519] border border-white/[0.06] rounded-2xl p-4 flex items-center justify-between relative overflow-hidden">
+  <div class="flex items-center gap-3.5">
+    <div class="w-10 h-10 rounded-full bg-[#10D85E]/15 border border-[#10D85E]/30 flex items-center justify-center text-[#10D85E] shrink-0">
+      <span class="material-symbols-outlined text-[20px]">speed</span>
     </div>
     <div>
-      <div class="text-[20px] font-extrabold text-white tracking-tight leading-none">120 <span class="text-[12px] font-semibold text-[#8E939E]">BPM</span></div>
-      <p class="text-[11px] text-[#10D85E] font-medium mt-1 flex items-center gap-1">
-        <span class="material-symbols-outlined text-[13px]">trending_up</span> Ritmo ideal
-      </p>
+      <span class="text-[11px] font-bold uppercase tracking-wider text-[#8E939E] block mb-0.5">Tempo Ativo</span>
+      <div class="text-[22px] font-extrabold text-white tracking-tight leading-none">5h 40m</div>
     </div>
   </div>
-  <div class="bg-[#141519] border border-white/[0.06] rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden min-h-[105px]">
-    <div class="flex items-center justify-between mb-2">
-      <span class="text-[11px] font-bold uppercase tracking-wider text-[#8E939E]">Tempo Ativo</span>
-      <div class="w-8 h-8 rounded-full bg-[#10D85E]/15 border border-[#10D85E]/30 flex items-center justify-center text-[#10D85E]">
-        <span class="material-symbols-outlined text-[17px]">speed</span>
-      </div>
-    </div>
-    <div>
-      <div class="text-[20px] font-extrabold text-white tracking-tight leading-none">5h 40m</div>
-      <p class="text-[11px] text-[#8E939E] font-medium mt-1">Meta semanal 80%</p>
-    </div>
+  <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1A1B1F] border border-white/[0.05]">
+    <span class="w-1.5 h-1.5 rounded-full bg-[#10D85E]"></span>
+    <span class="text-[11px] text-[#8E939E] font-medium">Meta semanal 80%</span>
   </div>
 </div>
 
@@ -121,10 +108,10 @@
     <h3 class="text-[22px] font-extrabold text-white tracking-tight leading-snug max-w-[240px]">Hoje: Treino A – Peito &amp; Tríceps</h3>
     <p class="text-[13px] text-[#8E939E] flex items-center gap-3 pt-0.5">
       <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px] text-[#10D85E]">schedule</span> 55 min</span>
-      <span class="">•</span>
+      <span>•</span>
       <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px] text-[#10D85E]">local_fire_department</span> 480 kcal</span>
-      <span class="">•</span>
-      <span class="">6 exercícios</span>
+      <span>•</span>
+      <span>6 exercícios</span>
     </p>
   </div>
   
@@ -151,7 +138,11 @@
   </div>
 </section></main>
 <!-- Navbar Inferior Minimalista (Home, Treino, Progresso, Perfil) -->
-<nav class="fixed bottom-0 w-full z-50 pb-safe bg-[#0B0C0E]/95 backdrop-blur-xl border-t border-white/[0.05]"><div class="relative flex items-center justify-around h-16 max-w-md mx-auto px-2"><a aria-current="page" class="flex flex-col items-center justify-center w-12 text-[#10D85E] transition-colors" href="#"><span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">home</span><span class="text-[10px] font-bold mt-0.5">Home</span></a><a class="flex flex-col items-center justify-center w-12 text-[#8E939E] hover:text-white transition-colors" href="#"><span class="material-symbols-outlined text-[22px]">fitness_center</span><span class="text-[10px] font-medium mt-0.5">Workout</span></a><div class="flex flex-col items-center justify-end h-full"><a class="relative -top-2.5 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95" href="#" style="background-color: #10D85E; color: #0B150E; box-shadow: 0 4px 16px rgba(16, 216, 94, 0.4);"><span class="material-symbols-outlined text-[24px] font-bold">local_fire_department</span></a><span class="text-[10px] font-medium text-[#8E939E] pb-1">Progres</span></div><a class="flex flex-col items-center justify-center w-12 text-[#8E939E] hover:text-white transition-colors" href="#"><span class="material-symbols-outlined text-[22px]">calendar_today</span><span class="text-[10px] font-medium mt-0.5">Schedule</span></a><a class="flex flex-col items-center justify-center w-12 text-[#8E939E] hover:text-white transition-colors" href="#"><span class="material-symbols-outlined text-[22px]">person</span><span class="text-[10px] font-medium mt-0.5">Profile</span></a></div></nav>
+<nav class="fixed bottom-0 w-full z-50 pb-safe bg-[#0B0C0E]/95 backdrop-blur-xl border-t border-white/[0.05]"><div class="relative flex items-center justify-around h-16 max-w-md mx-auto px-2"><a aria-current="page" class="flex flex-col items-center justify-center w-12 text-[#10D85E] transition-colors" href="#"><span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">home</span><span class="text-[10px] font-bold mt-0.5">Início</span></a><a class="flex flex-col items-center justify-center w-12 text-[#8E939E] hover:text-white transition-colors" href="#"><span class="material-symbols-outlined text-[22px]">fitness_center</span><span class="text-[10px] font-medium mt-0.5">Fichas</span></a><div class="flex flex-col items-center justify-end h-full"><a class="relative -top-2.5 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95" href="#" style="background-color: #10D85E; color: #0B150E; box-shadow: 0 4px 16px rgba(16, 216, 94, 0.4);"><span class="material-symbols-outlined text-[24px] font-bold">local_fire_department</span></a><span class="text-[10px] font-medium text-[#8E939E] pb-1">Treino</span></div><a class="flex flex-col items-center justify-center w-12 text-[#8E939E] hover:text-white transition-colors" href="#"><span class="material-symbols-outlined text-[22px]">calendar_today</span><span class="text-[10px] font-medium mt-0.5">Histórico</span></a><a class="flex flex-col items-center justify-center w-12 text-[#8E939E] hover:text-white transition-colors" href="#"><span class="material-symbols-outlined text-[22px]">person</span><span class="text-[10px] font-medium mt-0.5">Perfil</span></a></div></nav>
+
+
+
+
 
 
 </body></html>

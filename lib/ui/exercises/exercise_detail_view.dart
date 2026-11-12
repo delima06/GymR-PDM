@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/exercise_images.dart';
 import '../../domain/models/exercise.dart';
+import '../widgets/gymr_logo_title.dart';
 
 class ExerciseDetailView extends StatelessWidget {
   final Exercise exercise;
@@ -11,45 +13,62 @@ class ExerciseDetailView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          exercise.name,
-          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
-        ),
+        title: GymrLogoTitle(title: exercise.name),
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          // Banner Ilustrado / Visual do Exercício
+          // Banner Ilustrado / Visual do Exercício com Imagem Real do Stitch
           Container(
-            height: 180,
+            height: 190,
+            clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               color: AppColors.surfaceElevated,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppColors.surfaceBorder),
             ),
             child: Stack(
-              alignment: Alignment.center,
+              fit: StackFit.expand,
               children: [
+                Image.network(
+                  exercise.mediaUrl ?? ExerciseImageHelper.getExerciseImageUrl(exercise.name) ?? '',
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const SizedBox(),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.black.withValues(alpha: 0.8),
+                        Colors.black.withValues(alpha: 0.5),
+                        Colors.black.withValues(alpha: 0.85),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
+                ),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryNeon.withValues(alpha: 0.12),
+                        color: AppColors.primaryNeon.withValues(alpha: 0.15),
                         shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.primaryNeon.withValues(alpha: 0.3)),
                       ),
                       child: const Icon(
                         Icons.fitness_center_rounded,
-                        size: 48,
+                        size: 38,
                         color: AppColors.primaryNeon,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     Text(
                       exercise.muscleGroup.toUpperCase(),
                       style: const TextStyle(
-                        color: AppColors.textSecondary,
+                        color: AppColors.primaryNeon,
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 1.5,

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_colors.dart';
+import 'widgets/stitch_bottom_nav_bar.dart';
 import 'dashboard/dashboard_view.dart';
 import 'workouts/workouts_view.dart';
 import 'active_workout/active_workout_view.dart';
 import 'progress/progress_view.dart';
+import 'profile/profile_view.dart';
 
 class MainNavigationScaffold extends StatefulWidget {
   const MainNavigationScaffold({super.key});
@@ -25,7 +26,7 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
   void _startWorkout([String? workoutId]) {
     setState(() {
       _selectedWorkoutIdForActive = workoutId;
-      _currentIndex = 2; // Índice da aba 'Treino Ativo'
+      _currentIndex = 2; // Aba central Treinar/Treino Ativo
     });
   }
 
@@ -43,6 +44,11 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
         workoutId: _selectedWorkoutIdForActive,
       ),
       const ProgressView(),
+      ProfileView(
+        onStartWorkout: (id) => _startWorkout(id),
+        onNavigateToWorkouts: () => _onTabTapped(1),
+        onNavigateToProgress: () => _onTabTapped(3),
+      ),
     ];
 
     return Scaffold(
@@ -50,44 +56,9 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
         index: _currentIndex,
         children: pages,
       ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          border: Border(
-            top: BorderSide(color: AppColors.surfaceBorder, width: 1),
-          ),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: _onTabTapped,
-          backgroundColor: AppColors.surfaceCard,
-          selectedItemColor: AppColors.primaryNeon,
-          unselectedItemColor: AppColors.textSecondary,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 11),
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard_outlined),
-              activeIcon: Icon(Icons.dashboard),
-              label: 'Início',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.fitness_center_outlined),
-              activeIcon: Icon(Icons.fitness_center),
-              label: 'Fichas',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.timer_outlined),
-              activeIcon: Icon(Icons.timer),
-              label: 'Treino Ativo',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.show_chart_rounded),
-              activeIcon: Icon(Icons.insights_rounded),
-              label: 'Evolução',
-            ),
-          ],
-        ),
+      bottomNavigationBar: StitchBottomNavBar(
+        currentIndex: _currentIndex,
+        onTap: _onTabTapped,
       ),
     );
   }

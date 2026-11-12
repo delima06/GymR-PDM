@@ -5,6 +5,7 @@ import '../../data/repositories/exercise_repository.dart';
 import '../../data/repositories/workout_repository.dart';
 import '../../domain/models/exercise.dart';
 import '../../domain/models/workout.dart';
+import '../widgets/gymr_logo_title.dart';
 import '../exercises/exercise_detail_view.dart';
 
 class CreateWorkoutView extends StatefulWidget {
@@ -298,7 +299,7 @@ class _CreateWorkoutViewState extends State<CreateWorkoutView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nova Ficha de Treino', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const GymrLogoTitle(title: 'Nova Ficha'),
         actions: [
           TextButton(
             onPressed: _isSaving ? null : _saveWorkout,

@@ -7,7 +7,7 @@ class GymrLogoTitle extends StatelessWidget {
   const GymrLogoTitle({
     super.key,
     required this.title,
-    this.logoHeight = 28.0,
+    this.logoHeight = 24.0,
   });
 
   @override
@@ -25,21 +25,28 @@ class GymrLogoTitle extends StatelessWidget {
               'GymR',
               style: TextStyle(
                 fontWeight: FontWeight.w900,
-                fontSize: 20,
-                letterSpacing: 1.2,
+                fontSize: 18,
+                letterSpacing: 1.1,
               ),
             );
           },
         ),
-        const SizedBox(width: 14),
+        const SizedBox(width: 12),
+        Container(
+          height: 16,
+          width: 1,
+          color: Colors.white.withValues(alpha: 0.15),
+        ),
+        const SizedBox(width: 12),
         Flexible(
           child: Text(
             title,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontWeight: FontWeight.w800,
-              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              fontSize: 18,
               letterSpacing: -0.3,
+              color: Colors.white,
             ),
           ),
         ),

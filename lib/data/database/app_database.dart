@@ -20,8 +20,18 @@ class AppDatabase {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          final countResult = Sqflite.firstIntValue(
+            await db.rawQuery('SELECT COUNT(*) FROM workouts'),
+          );
+          if (countResult == null || countResult == 0) {
+            await _seedDefaultWorkouts(db);
+          }
+        }
+      },
     );
   }
 
@@ -114,8 +124,193 @@ class AppDatabase {
       )
     ''');
 
-    // Seed inicial com catálogo padrão
+    // Seed inicial com catálogo padrão e fichas de exemplo (Stitch)
     await _seedExercises(db);
+    await _seedDefaultWorkouts(db);
+  }
+
+  Future<void> _seedDefaultWorkouts(Database db) async {
+    // Fichas pré-configuradas idênticas ao design do Stitch (Treino A, B e C)
+    final now = DateTime.now().toIso8601String();
+
+    await db.insert('workouts', {
+      'id': 'workout-a',
+      'name': 'Treino A - Peito, Ombros & Tríceps',
+      'description': 'Foco em hipertrofia e empurrar (Push)',
+      'split': 'ABC',
+      'createdAt': now,
+    });
+
+    final exercisesA = [
+      {
+        'id': 'we-a-1',
+        'workoutId': 'workout-a',
+        'exerciseId': 'ex-1',
+        'exerciseName': 'Supino Reto com Barra',
+        'targetSets': 4,
+        'minReps': 8,
+        'maxReps': 10,
+        'initialWeight': 80.0,
+        'restSeconds': 90,
+        'orderIndex': 0,
+      },
+      {
+        'id': 'we-a-2',
+        'workoutId': 'workout-a',
+        'exerciseId': 'ex-2',
+        'exerciseName': 'Supino Inclinado c/ Halteres',
+        'targetSets': 3,
+        'minReps': 10,
+        'maxReps': 12,
+        'initialWeight': 28.0,
+        'restSeconds': 75,
+        'orderIndex': 1,
+      },
+      {
+        'id': 'we-a-3',
+        'workoutId': 'workout-a',
+        'exerciseId': 'ex-9',
+        'exerciseName': 'Desenvolvimento Militar',
+        'targetSets': 4,
+        'minReps': 8,
+        'maxReps': 10,
+        'initialWeight': 20.0,
+        'restSeconds': 90,
+        'orderIndex': 2,
+      },
+      {
+        'id': 'we-a-4',
+        'workoutId': 'workout-a',
+        'exerciseId': 'ex-10',
+        'exerciseName': 'Elevação Lateral na Polia',
+        'targetSets': 4,
+        'minReps': 12,
+        'maxReps': 15,
+        'initialWeight': 12.0,
+        'restSeconds': 60,
+        'orderIndex': 3,
+      },
+      {
+        'id': 'we-a-5',
+        'workoutId': 'workout-a',
+        'exerciseId': 'ex-12',
+        'exerciseName': 'Tríceps Corda na Polia',
+        'targetSets': 3,
+        'minReps': 12,
+        'maxReps': 15,
+        'initialWeight': 25.0,
+        'restSeconds': 60,
+        'orderIndex': 4,
+      },
+    ];
+
+    for (final e in exercisesA) {
+      await db.insert('workout_exercises', e);
+    }
+
+    // Treino B - Costas e Bíceps (Pull)
+    await db.insert('workouts', {
+      'id': 'workout-b',
+      'name': 'Treino B - Costas & Bíceps',
+      'description': 'Foco em puxadas e largura de dorsais (Pull)',
+      'split': 'ABC',
+      'createdAt': now,
+    });
+
+    final exercisesB = [
+      {
+        'id': 'we-b-1',
+        'workoutId': 'workout-b',
+        'exerciseId': 'ex-4',
+        'exerciseName': 'Puxada Aberta na Frente',
+        'targetSets': 4,
+        'minReps': 10,
+        'maxReps': 12,
+        'initialWeight': 65.0,
+        'restSeconds': 90,
+        'orderIndex': 0,
+      },
+      {
+        'id': 'we-b-2',
+        'workoutId': 'workout-b',
+        'exerciseId': 'ex-5',
+        'exerciseName': 'Remada Curvada com Barra',
+        'targetSets': 4,
+        'minReps': 8,
+        'maxReps': 10,
+        'initialWeight': 70.0,
+        'restSeconds': 90,
+        'orderIndex': 1,
+      },
+      {
+        'id': 'we-b-3',
+        'workoutId': 'workout-b',
+        'exerciseId': 'ex-11',
+        'exerciseName': 'Rosca Direta com Barra W',
+        'targetSets': 3,
+        'minReps': 10,
+        'maxReps': 12,
+        'initialWeight': 30.0,
+        'restSeconds': 60,
+        'orderIndex': 2,
+      },
+    ];
+
+    for (final e in exercisesB) {
+      await db.insert('workout_exercises', e);
+    }
+
+    // Treino C - Pernas & Core (Legs)
+    await db.insert('workouts', {
+      'id': 'workout-c',
+      'name': 'Treino C - Pernas & Core',
+      'description': 'Inferiores completos e estabilidade central (Legs)',
+      'split': 'ABC',
+      'createdAt': now,
+    });
+
+    final exercisesC = [
+      {
+        'id': 'we-c-1',
+        'workoutId': 'workout-c',
+        'exerciseId': 'ex-6',
+        'exerciseName': 'Agachamento Livre com Barra',
+        'targetSets': 4,
+        'minReps': 8,
+        'maxReps': 10,
+        'initialWeight': 90.0,
+        'restSeconds': 120,
+        'orderIndex': 0,
+      },
+      {
+        'id': 'we-c-2',
+        'workoutId': 'workout-c',
+        'exerciseId': 'ex-7',
+        'exerciseName': 'Leg Press 45°',
+        'targetSets': 4,
+        'minReps': 10,
+        'maxReps': 12,
+        'initialWeight': 200.0,
+        'restSeconds': 90,
+        'orderIndex': 1,
+      },
+      {
+        'id': 'we-c-3',
+        'workoutId': 'workout-c',
+        'exerciseId': 'ex-13',
+        'exerciseName': 'Prancha Isométrica',
+        'targetSets': 3,
+        'minReps': 45,
+        'maxReps': 60,
+        'initialWeight': 0.0,
+        'restSeconds': 60,
+        'orderIndex': 2,
+      },
+    ];
+
+    for (final e in exercisesC) {
+      await db.insert('workout_exercises', e);
+    }
   }
 
   Future<void> _seedExercises(Database db) async {
