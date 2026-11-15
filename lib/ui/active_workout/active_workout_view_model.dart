@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
@@ -73,6 +74,7 @@ class ActiveWorkoutViewModel extends ChangeNotifier {
   bool _isRestActive = false;
   bool get isRestActive => _isRestActive;
   Timer? _restTimer;
+  AudioPlayer? _audioPlayer;
 
   String get formattedSessionDuration {
     final hours = (_sessionElapsedSeconds ~/ 3600).toString().padLeft(2, '0');
@@ -106,32 +108,12 @@ class ActiveWorkoutViewModel extends ChangeNotifier {
       }
 
       if (_workout != null) {
-        _exerciseItems = _workout!.exercises.map((we) {
-          final sets = List.generate(
-            we.targetSets,
-            (index) => ActiveWorkoutSet(
-              setNumber: index + 1,
-              weightKg: we.initialWeight,
-              reps: we.maxReps,
-              isCompleted: false,
-            ),
-          );
-          return ActiveExerciseItem(exercise: we, sets: sets);
-        }).toList();
+        _exerciseItems = _buildExerciseItems(_workout!);
       } else {
         _exerciseItems = [];
       }
 
-      _sessionStartTime = DateTime.now();
-      _sessionElapsedSeconds = 0;
-      _isSessionActive = true;
-
-      // Inicia cronômetro do tempo total
-      _sessionTimer?.cancel();
-      _sessionTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-        _sessionElapsedSeconds++;
-        notifyListeners();
-      });
+      _startSessionClock();
     } catch (e) {
       debugPrint('Erro ao iniciar treino ativo: $e');
     } finally {
@@ -140,11 +122,47 @@ class ActiveWorkoutViewModel extends ChangeNotifier {
     }
   }
 
+  /// Inicia a sessão de treino ativo diretamente a partir de um objeto Workout em memória
+  void startSessionWithWorkout(Workout workout) {
+    _workout = workout;
+    _exerciseItems = _buildExerciseItems(workout);
+    _startSessionClock();
+    notifyListeners();
+  }
+
+  List<ActiveExerciseItem> _buildExerciseItems(Workout workout) {
+    return workout.exercises.map((we) {
+      final clampedSets = we.targetSets > 0 ? we.targetSets : 1;
+      final clampedReps = we.maxReps > 0 ? we.maxReps : 1;
+      final sets = List.generate(
+        clampedSets,
+        (index) => ActiveWorkoutSet(
+          setNumber: index + 1,
+          weightKg: we.initialWeight,
+          reps: clampedReps,
+          isCompleted: false,
+        ),
+      );
+      return ActiveExerciseItem(exercise: we, sets: sets);
+    }).toList();
+  }
+
+  void _startSessionClock() {
+    _sessionStartTime = DateTime.now();
+    _sessionElapsedSeconds = 0;
+    _isSessionActive = true;
+    _sessionTimer?.cancel();
+    _sessionTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _sessionElapsedSeconds++;
+      notifyListeners();
+    });
+  }
+
   /// Marca ou desmarca uma série como concluída
   void toggleSetCompleted(int exerciseIndex, int setIndex) {
-    if (exerciseIndex >= _exerciseItems.length) return;
+    if (exerciseIndex < 0 || exerciseIndex >= _exerciseItems.length) return;
     final item = _exerciseItems[exerciseIndex];
-    if (setIndex >= item.sets.length) return;
+    if (setIndex < 0 || setIndex >= item.sets.length) return;
 
     final targetSet = item.sets[setIndex];
     targetSet.isCompleted = !targetSet.isCompleted;
@@ -159,18 +177,20 @@ class ActiveWorkoutViewModel extends ChangeNotifier {
 
   /// Atualiza o peso de uma série específica
   void updateSetWeight(int exerciseIndex, int setIndex, double weight) {
-    if (exerciseIndex < _exerciseItems.length && setIndex < _exerciseItems[exerciseIndex].sets.length) {
-      _exerciseItems[exerciseIndex].sets[setIndex].weightKg = weight;
-      notifyListeners();
-    }
+    if (exerciseIndex < 0 || exerciseIndex >= _exerciseItems.length) return;
+    final item = _exerciseItems[exerciseIndex];
+    if (setIndex < 0 || setIndex >= item.sets.length) return;
+    item.sets[setIndex].weightKg = weight;
+    notifyListeners();
   }
 
   /// Atualiza as repetições de uma série específica
   void updateSetReps(int exerciseIndex, int setIndex, int reps) {
-    if (exerciseIndex < _exerciseItems.length && setIndex < _exerciseItems[exerciseIndex].sets.length) {
-      _exerciseItems[exerciseIndex].sets[setIndex].reps = reps;
-      notifyListeners();
-    }
+    if (exerciseIndex < 0 || exerciseIndex >= _exerciseItems.length) return;
+    final item = _exerciseItems[exerciseIndex];
+    if (setIndex < 0 || setIndex >= item.sets.length) return;
+    item.sets[setIndex].reps = reps;
+    notifyListeners();
   }
 
   /// Inicia o timer regressivo de descanso
@@ -189,16 +209,30 @@ class ActiveWorkoutViewModel extends ChangeNotifier {
         _restSecondsRemaining = 0;
         _isRestActive = false;
         timer.cancel();
-        // Feedback tátil nativo: vibra quando o descanso termina
-        HapticFeedback.vibrate();
+        // Feedback tátil e sonoro offline (chime local + fallback nativo)
+        unawaited(_playRestDoneCue());
         notifyListeners();
       }
     });
   }
 
+  Future<void> _playRestDoneCue() async {
+    try {
+      await HapticFeedback.vibrate();
+    } catch (_) {}
+    try {
+      await SystemSound.play(SystemSoundType.alert);
+    } catch (_) {}
+    await runZonedGuarded(() async {
+      _audioPlayer ??= AudioPlayer();
+      await _audioPlayer!.stop();
+      await _audioPlayer!.play(AssetSource('audio/rest_timer_done.wav'));
+    }, (_, __) {});
+  }
+
   /// Adiciona uma nova série extra ao exercício em tempo de treino
   void addExtraSet(int exerciseIndex) {
-    if (exerciseIndex >= _exerciseItems.length) return;
+    if (exerciseIndex < 0 || exerciseIndex >= _exerciseItems.length) return;
     final item = _exerciseItems[exerciseIndex];
     final lastSet = item.sets.isNotEmpty ? item.sets.last : null;
     final newNumber = item.sets.length + 1;
@@ -218,7 +252,7 @@ class ActiveWorkoutViewModel extends ChangeNotifier {
 
   /// Remove a última série do exercício (caso tenha adicionado sem querer)
   void removeLastSet(int exerciseIndex) {
-    if (exerciseIndex >= _exerciseItems.length) return;
+    if (exerciseIndex < 0 || exerciseIndex >= _exerciseItems.length) return;
     final item = _exerciseItems[exerciseIndex];
     if (item.sets.length > 1) {
       item.sets.removeLast();
@@ -309,6 +343,9 @@ class ActiveWorkoutViewModel extends ChangeNotifier {
   void dispose() {
     _sessionTimer?.cancel();
     _restTimer?.cancel();
+    try {
+      _audioPlayer?.dispose();
+    } catch (_) {}
     super.dispose();
   }
 }

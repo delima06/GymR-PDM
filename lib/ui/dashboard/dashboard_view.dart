@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/exercise_images.dart';
+import '../../domain/models/workout.dart';
+import '../widgets/app_notifications_sheet.dart';
 import '../widgets/gymr_logo_title.dart';
 import 'dashboard_view_model.dart';
 
@@ -177,7 +179,7 @@ class _DashboardViewState extends State<DashboardView> {
                 color: AppColors.textSecondary,
               ),
             ),
-            onPressed: () {},
+            onPressed: () => AppNotificationsSheet.show(context),
           ),
           const SizedBox(width: 8),
         ],
@@ -344,8 +346,8 @@ class _DashboardViewState extends State<DashboardView> {
                               height: 68,
                               child: CircularProgressIndicator(
                                 value: viewModel.completedSessionsCount > 0
-                                    ? (viewModel.completedSessionsCount / 5).clamp(0.2, 0.85)
-                                    : 0.85,
+                                    ? (viewModel.completedSessionsCount / 5).clamp(0.0, 1.0)
+                                    : 0.0,
                                 strokeWidth: 7,
                                 strokeCap: StrokeCap.round,
                                 backgroundColor: Colors.black.withValues(alpha: 0.15),
@@ -357,8 +359,8 @@ class _DashboardViewState extends State<DashboardView> {
                               children: [
                                 Text(
                                   viewModel.completedSessionsCount > 0
-                                      ? '${((viewModel.completedSessionsCount / 5) * 100).clamp(20, 85).toInt()}%'
-                                      : '85%',
+                                      ? '${((viewModel.completedSessionsCount / 5) * 100).clamp(0, 100).toInt()}%'
+                                      : '0%',
                                   style: const TextStyle(
                                     color: AppColors.textOnNeon,
                                     fontWeight: FontWeight.w900,
@@ -368,7 +370,7 @@ class _DashboardViewState extends State<DashboardView> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'Nível A',
+                                  viewModel.completedSessionsCount > 0 ? 'Nível A' : 'Nível 0',
                                   style: TextStyle(
                                     color: AppColors.textOnNeon.withValues(alpha: 0.75),
                                     fontWeight: FontWeight.w800,
@@ -397,75 +399,91 @@ class _DashboardViewState extends State<DashboardView> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryNeon.withValues(alpha: 0.15),
-                                shape: BoxShape.circle,
-                                border: Border.all(color: AppColors.primaryNeon.withValues(alpha: 0.3)),
-                              ),
-                              child: const Icon(
-                                Icons.speed_rounded,
-                                color: AppColors.primaryNeon,
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'TEMPO ATIVO',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.textSecondary,
-                                    letterSpacing: 0.8,
-                                  ),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryNeon.withValues(alpha: 0.15),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: AppColors.primaryNeon.withValues(alpha: 0.3)),
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  viewModel.formattedActiveTime != '0m'
-                                      ? viewModel.formattedActiveTime
-                                      : '5h 40m',
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white,
-                                    letterSpacing: -0.5,
+                                child: const Icon(
+                                  Icons.speed_rounded,
+                                  color: AppColors.primaryNeon,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text(
+                                      'TEMPO ATIVO',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.textSecondary,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        viewModel.formattedActiveTime,
+                                        style: const TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white,
+                                          letterSpacing: -0.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1A1B1F),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CircleAvatar(
+                                  radius: 3,
+                                  backgroundColor: AppColors.primaryNeon,
+                                ),
+                                SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    'Meta semanal 80%',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textSecondary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                          ],
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1A1B1F),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              CircleAvatar(
-                                radius: 3,
-                                backgroundColor: AppColors.primaryNeon,
-                              ),
-                              SizedBox(width: 6),
-                              Text(
-                                'Meta semanal 80%',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
                           ),
                         ),
                       ],
@@ -505,8 +523,8 @@ class _DashboardViewState extends State<DashboardView> {
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(22),
-                                child: Image.network(
-                                  ExerciseImageHelper.coachNarezUrl,
+                                child: Image.asset(
+                                  ExerciseImageHelper.coachNarezAsset,
                                   width: 44,
                                   height: 44,
                                   fit: BoxFit.cover,
@@ -539,12 +557,16 @@ class _DashboardViewState extends State<DashboardView> {
                             children: [
                               Row(
                                 children: [
-                                  const Text(
-                                    'Coach Narez',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 14,
+                                  const Flexible(
+                                    child: Text(
+                                      'Coach Narez',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 14,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 6),
@@ -568,6 +590,8 @@ class _DashboardViewState extends State<DashboardView> {
                               const SizedBox(height: 2),
                               const Text(
                                 'Novo feedback de postura enviado',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   color: AppColors.textSecondary,
                                   fontSize: 11,
@@ -628,21 +652,28 @@ class _DashboardViewState extends State<DashboardView> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Row(
-                              children: [
-                                Icon(Icons.biotech_rounded, color: AppColors.primaryNeon, size: 18),
-                                SizedBox(width: 6),
-                                Text(
-                                  'FOCO BIOMECÂNICO DE HOJE',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.textSecondary,
-                                    letterSpacing: 0.6,
+                            const Expanded(
+                              child: Row(
+                                children: [
+                                  Icon(Icons.biotech_rounded, color: AppColors.primaryNeon, size: 18),
+                                  SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      'FOCO BIOMECÂNICO DE HOJE',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.textSecondary,
+                                        letterSpacing: 0.6,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
+                            const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
@@ -701,7 +732,7 @@ class _DashboardViewState extends State<DashboardView> {
     );
   }
 
-  Widget _buildTodayWorkoutCard(dynamic workout) {
+  Widget _buildTodayWorkoutCard(Workout workout) {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
@@ -726,8 +757,8 @@ class _DashboardViewState extends State<DashboardView> {
             width: 170,
             child: Opacity(
               opacity: 0.25,
-              child: Image.network(
-                ExerciseImageHelper.todayWorkoutCoverUrl,
+              child: Image.asset(
+                ExerciseImageHelper.todayWorkoutCoverAsset,
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => const SizedBox(),
               ),
@@ -794,25 +825,51 @@ class _DashboardViewState extends State<DashboardView> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(Icons.schedule, size: 14, color: AppColors.primaryNeon),
-                    const SizedBox(width: 4),
-                    const Text('55 min', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                    const SizedBox(width: 8),
-                    const Text('•', style: TextStyle(color: AppColors.textSecondary)),
-                    const SizedBox(width: 8),
-                    const Icon(Icons.local_fire_department_rounded, size: 14, color: AppColors.primaryNeon),
-                    const SizedBox(width: 4),
-                    const Text('480 kcal', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                    const SizedBox(width: 8),
-                    const Text('•', style: TextStyle(color: AppColors.textSecondary)),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${workout.exercises.length} exercícios',
-                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                    ),
-                  ],
+                Builder(
+                  builder: (context) {
+                    final totalSets = workout.exercises.fold<int>(0, (sum, e) => sum + e.targetSets);
+                    final totalEstimatedSeconds = workout.exercises.fold<int>(
+                      0,
+                      (sum, e) => sum + (e.targetSets * (45 + e.restSeconds)),
+                    );
+                    final estMinutes = (totalEstimatedSeconds / 60).round();
+
+                    return Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.schedule, size: 14, color: AppColors.primaryNeon),
+                            const SizedBox(width: 4),
+                            Text(
+                              estMinutes > 0 ? '$estMinutes min' : '-- min',
+                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                        const Text('•', style: TextStyle(color: AppColors.textSecondary)),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.fitness_center_rounded, size: 14, color: AppColors.primaryNeon),
+                            const SizedBox(width: 4),
+                            Text(
+                              '$totalSets séries',
+                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                        const Text('•', style: TextStyle(color: AppColors.textSecondary)),
+                        Text(
+                          '${workout.exercises.length} exercícios',
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                        ),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 18),
                 SizedBox(

@@ -20,7 +20,7 @@ class AppDatabase {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _createDB,
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -44,6 +44,9 @@ class AppDatabase {
           if (sessionCount == null || sessionCount == 0) {
             await _seedInitialSessions(db);
           }
+        }
+        if (oldVersion < 4) {
+          await _seedExercises(db);
         }
       },
     );
@@ -426,6 +429,7 @@ class AppDatabase {
         equipment: 'Barra',
         instructions: 'Deite-se no banco com os olhos sob a barra. Segure com pegada ligeiramente mais larga que os ombros. Desça a barra controladamente até a linha dos mamilos e empurre até a extensão quase completa.',
         secondaryMuscles: ['Tríceps', 'Deltoide Anterior'],
+        mediaUrl: 'assets/exercises/ex-1-supino-reto.png',
       ),
       Exercise(
         id: 'ex-2',
@@ -434,6 +438,7 @@ class AppDatabase {
         equipment: 'Halteres',
         instructions: 'Ajuste o banco entre 30° e 45°. Mantenha as escápulas retraídas e desça os halteres alinhados ao peitoral superior.',
         secondaryMuscles: ['Deltoide Anterior', 'Tríceps'],
+        mediaUrl: 'assets/exercises/ex-2-supino-inclinado.png',
       ),
       Exercise(
         id: 'ex-3',
@@ -442,6 +447,7 @@ class AppDatabase {
         equipment: 'Polia',
         instructions: 'Com polias médias/altas, dê um passo à frente e flexione levemente os cotovelos. Traga as mãos à frente cruzando ou tocando os polegares no pico de contração.',
         secondaryMuscles: ['Deltoide Anterior'],
+        mediaUrl: 'assets/exercises/ex-3-crucifixo-polia.png',
       ),
       Exercise(
         id: 'ex-4',
@@ -450,6 +456,7 @@ class AppDatabase {
         equipment: 'Máquina',
         instructions: 'Segure a barra com pegada pronada aberta. Puxe a barra em direção à parte superior do peito enquanto retrai e deprime as escápulas.',
         secondaryMuscles: ['Bíceps', 'Braquial', 'Trapézio'],
+        mediaUrl: 'assets/exercises/ex-4-puxada-aberta.png',
       ),
       Exercise(
         id: 'ex-5',
@@ -458,6 +465,7 @@ class AppDatabase {
         equipment: 'Barra',
         instructions: 'Tronco inclinado a 45°, coluna neutra e joelhos semi-flexionados. Puxe a barra em direção ao umbigo cotovelos apontando para trás.',
         secondaryMuscles: ['Lombar', 'Bíceps', 'Trapézio'],
+        mediaUrl: 'assets/exercises/ex-5-remada-curvada.png',
       ),
       Exercise(
         id: 'ex-6',
@@ -466,6 +474,7 @@ class AppDatabase {
         equipment: 'Barra',
         instructions: 'Barra apoiada no trapézio, pés afastados na largura dos ombros. Flexione joelhos e quadril descendo até que a coxa fique paralela ao solo.',
         secondaryMuscles: ['Glúteos', 'Core', 'Posteriores de Coxa'],
+        mediaUrl: 'assets/exercises/ex-6-agachamento-livre.png',
       ),
       Exercise(
         id: 'ex-7',
@@ -474,6 +483,7 @@ class AppDatabase {
         equipment: 'Máquina',
         instructions: 'Pés na plataforma na largura do quadril. Desça controlando o peso sem deixar a lombar sair do encosto, estenda sem hiperextender os joelhos.',
         secondaryMuscles: ['Glúteos', 'Quadríceps'],
+        mediaUrl: 'assets/exercises/ex-7-leg-press-45.png',
       ),
       Exercise(
         id: 'ex-8',
@@ -482,6 +492,7 @@ class AppDatabase {
         equipment: 'Máquina',
         instructions: 'Deitado de bruços, almofada logo acima do calcanhar. Flexione os joelhos puxando os pés em direção aos glúteos e controle a descida.',
         secondaryMuscles: ['Panturrilhas'],
+        mediaUrl: 'assets/exercises/ex-8-mesa-flexora.png',
       ),
       Exercise(
         id: 'ex-9',
@@ -490,6 +501,7 @@ class AppDatabase {
         equipment: 'Halteres',
         instructions: 'Sentado ou em pé com a coluna ereta. Eleve os halteres acima da cabeça até quase encostarem, descendo até a altura dos ouvidos.',
         secondaryMuscles: ['Tríceps', 'Peitoral Superior'],
+        mediaUrl: 'assets/exercises/ex-9-desenvolvimento-militar.png',
       ),
       Exercise(
         id: 'ex-10',
@@ -498,6 +510,7 @@ class AppDatabase {
         equipment: 'Halteres',
         instructions: 'Em pé, eleve os braços lateralmente até a altura dos ombros, mantendo ligeira flexão de cotovelo e sem usar impulsos do tronco.',
         secondaryMuscles: ['Trapézio'],
+        mediaUrl: 'assets/exercises/ex-10-elevacao-lateral.png',
       ),
       Exercise(
         id: 'ex-11',
@@ -506,6 +519,7 @@ class AppDatabase {
         equipment: 'Barra',
         instructions: 'Cotovelos firmes ao lado do tronco. Flexione os antebraços erguendo a barra com contração máxima nos bíceps e desça devagar.',
         secondaryMuscles: ['Braquial', 'Antebraços'],
+        mediaUrl: 'assets/exercises/ex-11-rosca-direta.png',
       ),
       Exercise(
         id: 'ex-12',
@@ -514,6 +528,7 @@ class AppDatabase {
         equipment: 'Polia',
         instructions: 'Fixe a corda na polia alta. Estenda os braços para baixo abrindo as pontas da corda ao final do movimento.',
         secondaryMuscles: ['Antebraços'],
+        mediaUrl: 'assets/exercises/ex-12-triceps-corda.png',
       ),
       Exercise(
         id: 'ex-13',
@@ -522,6 +537,7 @@ class AppDatabase {
         equipment: 'Peso do corpo',
         instructions: 'Apoie antebraços e pontas dos pés no chão. Mantenha o corpo em linha reta e abdômen contraído sem deixar o quadril cair.',
         secondaryMuscles: ['Lombar', 'Glúteos'],
+        mediaUrl: 'assets/exercises/ex-13-prancha-isometrica.png',
       ),
     ];
 

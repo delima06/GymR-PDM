@@ -60,7 +60,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verifica elementos do Card Principal
-    expect(find.text('Michael Law'), findsOneWidget);
+    expect(find.text('Atleta GymR'), findsOneWidget);
     expect(find.text('Gymr PRO'), findsOneWidget);
     expect(find.text('Membro Ativo'), findsOneWidget);
 

@@ -18,10 +18,68 @@ class ExerciseRepository {
     final db = await _dbProvider.database;
     final maps = await db.query(
       'exercises',
-      where: 'muscleGroup = ?',
-      whereArgs: [muscleGroup],
+      where: 'LOWER(muscleGroup) = LOWER(?)',
+      whereArgs: [muscleGroup.trim()],
       orderBy: 'name ASC',
     );
+    return maps.map((map) => Exercise.fromMap(map)).toList();
+  }
+
+  Future<List<Exercise>> getExercisesByEquipment(String equipment) async {
+    final db = await _dbProvider.database;
+    final maps = await db.query(
+      'exercises',
+      where: 'LOWER(equipment) = LOWER(?)',
+      whereArgs: [equipment.trim()],
+      orderBy: 'name ASC',
+    );
+    return maps.map((map) => Exercise.fromMap(map)).toList();
+  }
+
+  Future<List<Exercise>> filterExercises({
+    String? muscleGroup,
+    String? equipment,
+    String? query,
+  }) async {
+    final db = await _dbProvider.database;
+
+    final clauses = <String>[];
+    final whereArgs = <dynamic>[];
+
+    if (muscleGroup != null &&
+        muscleGroup.trim().isNotEmpty &&
+        muscleGroup.trim().toLowerCase() != 'todos' &&
+        muscleGroup.trim().toLowerCase() != 'all') {
+      clauses.add('LOWER(muscleGroup) = LOWER(?)');
+      whereArgs.add(muscleGroup.trim());
+    }
+
+    if (equipment != null &&
+        equipment.trim().isNotEmpty &&
+        equipment.trim().toLowerCase() != 'todos' &&
+        equipment.trim().toLowerCase() != 'all') {
+      clauses.add('LOWER(equipment) = LOWER(?)');
+      whereArgs.add(equipment.trim());
+    }
+
+    if (query != null && query.trim().isNotEmpty) {
+      final sanitized = '%${query.trim().toLowerCase()}%';
+      clauses.add(
+        '(LOWER(name) LIKE ? OR LOWER(muscleGroup) LIKE ? OR LOWER(equipment) LIKE ? OR LOWER(instructions) LIKE ? OR LOWER(secondaryMuscles) LIKE ?)',
+      );
+      whereArgs.addAll([sanitized, sanitized, sanitized, sanitized, sanitized]);
+    }
+
+    final whereString = clauses.isNotEmpty ? clauses.join(' AND ') : null;
+    final argsList = whereArgs.isNotEmpty ? whereArgs : null;
+
+    final maps = await db.query(
+      'exercises',
+      where: whereString,
+      whereArgs: argsList,
+      orderBy: 'name ASC',
+    );
+
     return maps.map((map) => Exercise.fromMap(map)).toList();
   }
 

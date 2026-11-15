@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/exercise_images.dart';
+import '../progress/workout_history_view.dart';
+import '../widgets/app_notifications_sheet.dart';
 import '../widgets/gymr_logo_title.dart';
 import 'profile_view_model.dart';
 
@@ -151,12 +153,12 @@ class _ProfileViewState extends State<ProfileView> {
                 border: Border.all(color: AppColors.surfaceBorder),
               ),
               child: const Icon(
-                Icons.settings_outlined,
+                Icons.notifications_none,
                 size: 20,
                 color: AppColors.textSecondary,
               ),
             ),
-            onPressed: () {},
+            onPressed: () => AppNotificationsSheet.show(context),
           ),
           const SizedBox(width: 8),
         ],
@@ -226,8 +228,8 @@ class _ProfileViewState extends State<ProfileView> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(30),
-                  child: Image.network(
-                    ExerciseImageHelper.athleteAvatarUrl,
+                  child: Image.asset(
+                    ExerciseImageHelper.athleteAvatarAsset,
                     width: 62,
                     height: 62,
                     fit: BoxFit.cover,
@@ -295,7 +297,10 @@ class _ProfileViewState extends State<ProfileView> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -305,6 +310,8 @@ class _ProfileViewState extends State<ProfileView> {
                       ),
                       child: Text(
                         vm.planTier,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: AppColors.textOnNeon,
                           fontSize: 9,
@@ -313,7 +320,6 @@ class _ProfileViewState extends State<ProfileView> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
                     const Text(
                       'Membro Ativo',
                       style: TextStyle(
@@ -436,15 +442,20 @@ class _ProfileViewState extends State<ProfileView> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'BIOMETRIA & METAS',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textSecondary,
-                letterSpacing: 0.8,
+            const Expanded(
+              child: Text(
+                'BIOMETRIA & METAS',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 0.8,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
+            const SizedBox(width: 8),
             GestureDetector(
               onTap: () => _showUpdateBiometricsDialog(context, vm),
               child: const Row(
@@ -640,18 +651,23 @@ class _ProfileViewState extends State<ProfileView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'ACESSO RÁPIDO & ROTINAS',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textSecondary,
-                letterSpacing: 0.8,
+          children: const [
+            Expanded(
+              child: Text(
+                'ACESSO RÁPIDO & ROTINAS',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 0.8,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
+            SizedBox(width: 8),
             Text(
               '3 atalhos',
               style: TextStyle(
@@ -706,35 +722,39 @@ class _ProfileViewState extends State<ProfileView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 2,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryNeon.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Text(
-                              'TREINO DE HOJE',
-                              style: TextStyle(
-                                color: AppColors.primaryNeon,
-                                fontSize: 9,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.5,
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryNeon.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text(
+                                'TREINO DE HOJE',
+                                style: TextStyle(
+                                  color: AppColors.primaryNeon,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.5,
+                                ),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              vm.todayWorkoutSession ?? 'Sessão B',
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              overflow: TextOverflow.ellipsis,
+                          Text(
+                            vm.todayWorkoutSession ?? 'Sessão B',
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -933,24 +953,43 @@ class _ProfileViewState extends State<ProfileView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'CONQUISTAS & RECORDES',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textSecondary,
-                letterSpacing: 0.8,
+            const Expanded(
+              child: Text(
+                'CONQUISTAS & RECORDES',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 0.8,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            Text(
-              'Ver todos (8)',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryNeon,
+            const SizedBox(width: 8),
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const WorkoutHistoryView(initialTab: 1),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                child: Text(
+                  'Ver todos',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryNeon,
+                  ),
+                ),
               ),
             ),
           ],
@@ -1007,6 +1046,8 @@ class _ProfileViewState extends State<ProfileView> {
         children: [
           Text(
             title.toUpperCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.w800,
@@ -1015,12 +1056,15 @@ class _ProfileViewState extends State<ProfileView> {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w900,
-              color: isNeonBadge ? AppColors.primaryNeon : Colors.white,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                color: isNeonBadge ? AppColors.primaryNeon : Colors.white,
+              ),
             ),
           ),
           const SizedBox(height: 6),
@@ -1034,6 +1078,8 @@ class _ProfileViewState extends State<ProfileView> {
             ),
             child: Text(
               badgeText,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 8,
                 fontWeight: FontWeight.w900,

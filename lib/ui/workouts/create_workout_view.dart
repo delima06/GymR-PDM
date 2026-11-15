@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/theme/app_colors.dart';
-import '../../data/repositories/exercise_repository.dart';
 import '../../data/repositories/workout_repository.dart';
 import '../../domain/models/exercise.dart';
 import '../../domain/models/workout.dart';
 import '../widgets/gymr_logo_title.dart';
-import '../exercises/exercise_detail_view.dart';
+import '../exercises/exercise_catalog_view.dart';
 
 class CreateWorkoutView extends StatefulWidget {
   final Workout? workoutToEdit;
 
   const CreateWorkoutView({super.key, this.workoutToEdit});
+
+  /// Valida se a faixa de repetições é válida (minReps >= 1 e minReps <= maxReps)
+  static bool isValidRepRange(int minReps, int maxReps) {
+    return minReps >= 1 && minReps <= maxReps;
+  }
+
+  /// Valida se a quantidade de séries é válida (targetSets >= 1)
+  static bool isValidTargetSets(int targetSets) {
+    return targetSets >= 1;
+  }
 
   @override
   State<CreateWorkoutView> createState() => _CreateWorkoutViewState();
@@ -25,7 +34,6 @@ class _CreateWorkoutViewState extends State<CreateWorkoutView> {
 
   final List<WorkoutExercise> _exercises = [];
   final _workoutRepository = WorkoutRepository();
-  final _exerciseRepository = ExerciseRepository();
 
   bool _isSaving = false;
 
@@ -51,205 +59,46 @@ class _CreateWorkoutViewState extends State<CreateWorkoutView> {
   }
 
   void _addExerciseToWorkout() async {
-    final exercises = await _exerciseRepository.getAllExercises();
-    if (!mounted) return;
-
-    showModalBottomSheet<Exercise>(
-      context: context,
-      backgroundColor: AppColors.surfaceElevated,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    final selectedExercise = await Navigator.of(context).push<Exercise>(
+      MaterialPageRoute(
+        builder: (_) => const ExerciseCatalogView(isSelectionMode: true),
       ),
-      builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.75,
-          minChildSize: 0.5,
-          maxChildSize: 0.95,
-          expand: false,
-          builder: (context, scrollController) {
-            return Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceBorder,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  child: Text(
-                    'Selecione um Exercício',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: ListView.separated(
-                    controller: scrollController,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    itemCount: exercises.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final ex = exercises[index];
-                      return ListTile(
-                        tileColor: AppColors.surfaceCard,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: const BorderSide(color: AppColors.surfaceBorder),
-                        ),
-                        title: Text(
-                          ex.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        subtitle: Text(
-                          '${ex.muscleGroup} • ${ex.equipment}',
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                          ),
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.info_outline, color: AppColors.textSecondary, size: 20),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => ExerciseDetailView(exercise: ex)),
-                                );
-                              },
-                            ),
-                            const Icon(Icons.add_circle_outline, color: AppColors.primaryNeon),
-                          ],
-                        ),
-                        onTap: () => Navigator.pop(context, ex),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    ).then((selectedExercise) {
-      if (selectedExercise != null) {
-        _configureExerciseDetails(selectedExercise);
-      }
-    });
+    );
+    if (selectedExercise != null && mounted) {
+      _configureExerciseDetails(exercise: selectedExercise);
+    }
   }
 
-  void _configureExerciseDetails(Exercise exercise) {
-    int sets = 3;
-    int minReps = 8;
-    int maxReps = 12;
-    double weight = 20.0;
-    int rest = 60;
+  Future<void> _configureExerciseDetails({
+    Exercise? exercise,
+    WorkoutExercise? existingExercise,
+    int? editingIndex,
+  }) async {
+    assert(exercise != null || existingExercise != null);
+    final isEditing = existingExercise != null && editingIndex != null;
+    final exerciseName = existingExercise?.exerciseName ?? exercise!.name;
+    final exerciseId = existingExercise?.exerciseId ?? exercise!.id;
 
-    final setsController = TextEditingController(text: sets.toString());
-    final minRepsController = TextEditingController(text: minReps.toString());
-    final maxRepsController = TextEditingController(text: maxReps.toString());
-    final weightController = TextEditingController(text: weight.toStringAsFixed(1));
-    final restController = TextEditingController(text: rest.toString());
-
-    showDialog(
+    final result = await showDialog<WorkoutExercise>(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: AppColors.surfaceCard,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: AppColors.surfaceBorder),
-          ),
-          title: Text(
-            exercise.name,
-            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: setsController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Número de Séries'),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: minRepsController,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Reps Mínimas'),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        controller: maxRepsController,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Reps Máximas'),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: weightController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Carga Inicial (kg)'),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: restController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Descanso (segundos)'),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('CANCELAR', style: TextStyle(color: AppColors.textSecondary)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final configured = WorkoutExercise(
-                  id: const Uuid().v4(),
-                  workoutId: '',
-                  exerciseId: exercise.id,
-                  exerciseName: exercise.name,
-                  targetSets: int.tryParse(setsController.text) ?? 3,
-                  minReps: int.tryParse(minRepsController.text) ?? 8,
-                  maxReps: int.tryParse(maxRepsController.text) ?? 12,
-                  initialWeight: double.tryParse(weightController.text) ?? 0.0,
-                  restSeconds: int.tryParse(restController.text) ?? 60,
-                  orderIndex: _exercises.length,
-                );
-                setState(() {
-                  _exercises.add(configured);
-                });
-                Navigator.pop(context);
-              },
-              child: const Text('ADICIONAR'),
-            ),
-          ],
-        );
-      },
+      builder: (_) => _ExerciseConfigDialog(
+        exerciseName: exerciseName,
+        exerciseId: exerciseId,
+        existingExercise: existingExercise,
+        orderIndex: isEditing ? existingExercise.orderIndex : _exercises.length,
+        isEditing: isEditing,
+      ),
     );
+
+    if (result != null && mounted) {
+      setState(() {
+        if (isEditing) {
+          _exercises[editingIndex] = result;
+        } else {
+          _exercises.add(result);
+        }
+      });
+    }
   }
 
   Future<void> _saveWorkout() async {
@@ -262,6 +111,27 @@ class _CreateWorkoutViewState extends State<CreateWorkoutView> {
         ),
       );
       return;
+    }
+
+    for (final e in _exercises) {
+      if (!CreateWorkoutView.isValidTargetSets(e.targetSets)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No exercício "${e.exerciseName}", número de séries deve ser no mínimo 1!'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+      if (!CreateWorkoutView.isValidRepRange(e.minReps, e.maxReps)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No exercício "${e.exerciseName}", repetições mínimas não podem ser menores que 1 ou maiores que as máximas!'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
     }
 
     setState(() => _isSaving = true);
@@ -389,9 +259,12 @@ class _CreateWorkoutViewState extends State<CreateWorkoutView> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Exercícios Selecionados',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                const Expanded(
+                  child: Text(
+                    'Exercícios Selecionados',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 TextButton.icon(
                   onPressed: _addExerciseToWorkout,
@@ -456,19 +329,35 @@ class _CreateWorkoutViewState extends State<CreateWorkoutView> {
                         const Icon(Icons.drag_indicator, color: AppColors.textMuted),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item.exerciseName,
-                                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${item.targetSets} séries • ${item.repRangeText} reps • ${item.initialWeight} kg • ${item.restSeconds}s descanso',
-                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                              ),
-                            ],
+                          child: InkWell(
+                            onTap: () {
+                              _configureExerciseDetails(
+                                existingExercise: item,
+                                editingIndex: index,
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        item.exerciseName,
+                                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary),
+                                      ),
+                                    ),
+                                    const Icon(Icons.edit_outlined, size: 16, color: AppColors.primaryNeon),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${item.targetSets} séries • ${item.repRangeText} reps • ${item.initialWeight} kg • ${item.restSeconds}s descanso',
+                                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         IconButton(
@@ -487,6 +376,162 @@ class _CreateWorkoutViewState extends State<CreateWorkoutView> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ExerciseConfigDialog extends StatefulWidget {
+  final String exerciseName;
+  final String exerciseId;
+  final WorkoutExercise? existingExercise;
+  final int orderIndex;
+  final bool isEditing;
+
+  const _ExerciseConfigDialog({
+    required this.exerciseName,
+    required this.exerciseId,
+    this.existingExercise,
+    required this.orderIndex,
+    required this.isEditing,
+  });
+
+  @override
+  State<_ExerciseConfigDialog> createState() => _ExerciseConfigDialogState();
+}
+
+class _ExerciseConfigDialogState extends State<_ExerciseConfigDialog> {
+  late final TextEditingController setsController;
+  late final TextEditingController minRepsController;
+  late final TextEditingController maxRepsController;
+  late final TextEditingController weightController;
+  late final TextEditingController restController;
+
+  @override
+  void initState() {
+    super.initState();
+    final ex = widget.existingExercise;
+    setsController = TextEditingController(text: (ex?.targetSets ?? 3).toString());
+    minRepsController = TextEditingController(text: (ex?.minReps ?? 8).toString());
+    maxRepsController = TextEditingController(text: (ex?.maxReps ?? 12).toString());
+    weightController = TextEditingController(text: (ex?.initialWeight ?? 20.0).toStringAsFixed(1));
+    restController = TextEditingController(text: (ex?.restSeconds ?? 60).toString());
+  }
+
+  @override
+  void dispose() {
+    setsController.dispose();
+    minRepsController.dispose();
+    maxRepsController.dispose();
+    weightController.dispose();
+    restController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppColors.surfaceCard,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: const BorderSide(color: AppColors.surfaceBorder),
+      ),
+      title: Text(
+        widget.isEditing ? 'Editar ${widget.exerciseName}' : widget.exerciseName,
+        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: setsController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Número de Séries'),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: minRepsController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Reps Mínimas'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: maxRepsController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Reps Máximas'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: weightController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Carga Inicial (kg)'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: restController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Descanso (segundos)'),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('CANCELAR', style: TextStyle(color: AppColors.textSecondary)),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            final parsedSets = int.tryParse(setsController.text) ?? 3;
+            final parsedMinReps = int.tryParse(minRepsController.text) ?? 8;
+            final parsedMaxReps = int.tryParse(maxRepsController.text) ?? 12;
+
+            if (!CreateWorkoutView.isValidTargetSets(parsedSets)) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Número de séries deve ser no mínimo 1!'),
+                  backgroundColor: AppColors.error,
+                ),
+              );
+              return;
+            }
+
+            if (!CreateWorkoutView.isValidRepRange(parsedMinReps, parsedMaxReps)) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Repetições mínimas não podem ser menores que 1 ou maiores que as máximas!'),
+                  backgroundColor: AppColors.error,
+                ),
+              );
+              return;
+            }
+
+            final configured = WorkoutExercise(
+              id: widget.isEditing ? widget.existingExercise!.id : const Uuid().v4(),
+              workoutId: widget.isEditing ? widget.existingExercise!.workoutId : '',
+              exerciseId: widget.exerciseId,
+              exerciseName: widget.exerciseName,
+              targetSets: parsedSets,
+              minReps: parsedMinReps,
+              maxReps: parsedMaxReps,
+              initialWeight: double.tryParse(weightController.text) ?? 0.0,
+              restSeconds: int.tryParse(restController.text) ?? 60,
+              orderIndex: widget.orderIndex,
+            );
+
+            Navigator.pop(context, configured);
+          },
+          child: Text(widget.isEditing ? 'SALVAR' : 'ADICIONAR'),
+        ),
+      ],
     );
   }
 }

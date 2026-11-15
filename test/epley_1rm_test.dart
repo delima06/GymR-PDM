@@ -30,5 +30,20 @@ void main() {
       expect(EpleyCalculator.shouldProgressWeight(12), isTrue);
       expect(EpleyCalculator.shouldProgressWeight(15), isTrue);
     });
+
+    test('Sobrecarga Progressiva com targetMaxReps customizado (faixa de hipertrofia)', () {
+      expect(EpleyCalculator.shouldProgressWeight(7, 8), isFalse);
+      expect(EpleyCalculator.shouldProgressWeight(8, 8), isTrue);
+      expect(EpleyCalculator.shouldProgressWeight(10, 8), isTrue);
+      expect(EpleyCalculator.shouldProgressWeight(5, 6), isFalse);
+      expect(EpleyCalculator.shouldProgressWeight(6, 6), isTrue);
+    });
+
+    test('suggestNextWeight calcula incremento gradual de sobrecarga (+2.5 kg)', () {
+      expect(EpleyCalculator.suggestNextWeight(80.0), 82.5);
+      expect(EpleyCalculator.suggestNextWeight(100.0), 102.5);
+      expect(EpleyCalculator.suggestNextWeight(0.0), 2.5);
+      expect(EpleyCalculator.suggestNextWeight(50.0, 5.0), 55.0);
+    });
   });
 }

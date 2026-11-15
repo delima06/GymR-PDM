@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/repositories/history_repository.dart';
 import '../widgets/gymr_logo_title.dart';
-import '../profile/profile_view_model.dart';
+import 'comparative_photo_view.dart';
 import 'progress_view_model.dart';
+import 'register_measurement_view.dart';
+import 'workout_history_view.dart';
 
 class ProgressView extends StatefulWidget {
   const ProgressView({super.key});
@@ -31,91 +33,8 @@ class _ProgressViewState extends State<ProgressView> {
   }
 
   void _showAddMeasurementDialog(BuildContext context, ProgressViewModel vm) {
-    final weightController = TextEditingController();
-    final bodyFatController = TextEditingController();
-    final armsController = TextEditingController();
-    final waistController = TextEditingController();
-    final chestController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: AppColors.surfaceCard,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: AppColors.surfaceBorder),
-          ),
-          title: const Text(
-            'Nova Medição Corporal',
-            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: weightController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Peso Atual (kg)'),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: bodyFatController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: '% Gordura Corporal (opcional)'),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: armsController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Circunferência Braço (cm)'),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: waistController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Circunferência Cintura (cm)'),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: chestController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Circunferência Tórax (cm)'),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('CANCELAR', style: TextStyle(color: AppColors.textSecondary)),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final weight = double.tryParse(weightController.text);
-                final bf = double.tryParse(bodyFatController.text);
-                final arms = double.tryParse(armsController.text);
-                final waist = double.tryParse(waistController.text);
-                final chest = double.tryParse(chestController.text);
-
-                Navigator.pop(context);
-                await vm.addMeasurement(
-                  weightKg: weight,
-                  bodyFatPercentage: bf,
-                  armsCm: arms,
-                  waistCm: waist,
-                  chestCm: chest,
-                );
-                if (context.mounted) {
-                  context.read<ProfileViewModel>().loadProfileData();
-                }
-              },
-              child: const Text('SALVAR'),
-            ),
-          ],
-        );
-      },
+    Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const RegisterMeasurementView()),
     );
   }
 
@@ -130,67 +49,73 @@ class _ProgressViewState extends State<ProgressView> {
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: const Color(0xFF18191D),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
         return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 36,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Selecione o Exercício para Evolução',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                ...List.generate(exercises.length, (i) {
-                  final name = exercises[i];
-                  final isSelected = name == vm.selectedExerciseName;
-                  return ListTile(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    tileColor: isSelected ? const Color(0xFF22242A) : null,
-                    leading: Icon(
-                      Icons.fitness_center_rounded,
-                      color: isSelected ? AppColors.primaryNeon : AppColors.textSecondary,
-                      size: 20,
-                    ),
-                    title: Text(
-                      name,
-                      style: TextStyle(
-                        color: isSelected ? AppColors.primaryNeon : Colors.white,
-                        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                        fontSize: 14,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.75,
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                    trailing: isSelected
-                        ? const Icon(Icons.check_rounded, color: AppColors.primaryNeon, size: 20)
-                        : null,
-                    onTap: () {
-                      vm.selectExerciseForChart(name);
-                      Navigator.pop(context);
-                    },
-                  );
-                }),
-              ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Selecione o Exercício para Evolução',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ...List.generate(exercises.length, (i) {
+                    final name = exercises[i];
+                    final isSelected = name == vm.selectedExerciseName;
+                    return ListTile(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      tileColor: isSelected ? const Color(0xFF22242A) : null,
+                      leading: Icon(
+                        Icons.fitness_center_rounded,
+                        color: isSelected ? AppColors.primaryNeon : AppColors.textSecondary,
+                        size: 20,
+                      ),
+                      title: Text(
+                        name,
+                        style: TextStyle(
+                          color: isSelected ? AppColors.primaryNeon : Colors.white,
+                          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                      trailing: isSelected
+                          ? const Icon(Icons.check_rounded, color: AppColors.primaryNeon, size: 20)
+                          : null,
+                      onTap: () {
+                        vm.selectExerciseForChart(name);
+                        Navigator.pop(context);
+                      },
+                    );
+                  }),
+                ],
+              ),
             ),
           ),
         );
@@ -205,42 +130,6 @@ class _ProgressViewState extends State<ProgressView> {
     return Scaffold(
       appBar: AppBar(
         title: const GymrLogoTitle(title: 'Histórico e Evolução'),
-        actions: [
-          IconButton(
-            icon: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1C1D22),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-                  ),
-                  child: const Icon(
-                    Icons.notifications_none,
-                    size: 20,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                Positioned(
-                  top: 2,
-                  right: 2,
-                  child: Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primaryNeon,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            onPressed: () {},
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
       body: vm.isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primaryNeon))
@@ -256,24 +145,32 @@ class _ProgressViewState extends State<ProgressView> {
                   const SizedBox(height: 18),
 
                   // 2. Card de Destaque Superior Neon (Progresso Geral)
-                  _buildNeonHighlightCard(),
-                  const SizedBox(height: 22),
+                  if (_selectedFilterIndex == 0 || _selectedFilterIndex == 2) ...[
+                    _buildNeonHighlightCard(),
+                    const SizedBox(height: 22),
+                  ],
 
                   // 3. Seção Evolução de Carga com Dropdown & Gráfico Neon
-                  _buildLoadEvolutionSection(context, vm),
-                  const SizedBox(height: 24),
+                  if (_selectedFilterIndex == 0 || _selectedFilterIndex == 3) ...[
+                    _buildLoadEvolutionSection(context, vm),
+                    const SizedBox(height: 24),
+                  ],
 
                   // 4. Seção Medidas Corporais (Cards + Botão Registrar)
-                  _buildBodyMeasurementsSection(context, vm),
-                  const SizedBox(height: 24),
+                  if (_selectedFilterIndex == 0 || _selectedFilterIndex == 1) ...[
+                    _buildBodyMeasurementsSection(context, vm),
+                    const SizedBox(height: 24),
+                  ],
 
                   // 5. Seção Histórico Recente
                   _buildRecentHistorySection(vm),
                   const SizedBox(height: 18),
 
                   // 6. Card Consistência Mensal
-                  _buildMonthlyConsistencyCard(),
-                  const SizedBox(height: 28),
+                  if (_selectedFilterIndex == 0 || _selectedFilterIndex == 2) ...[
+                    _buildMonthlyConsistencyCard(vm),
+                    const SizedBox(height: 28),
+                  ],
                 ],
               ),
             ),
@@ -442,7 +339,7 @@ class _ProgressViewState extends State<ProgressView> {
         p.exerciseName.toLowerCase().contains(vm.selectedExerciseName.toLowerCase()));
     final gainText = matchingPR.isNotEmpty
         ? '+${(matchingPR.first.maxWeightKg * 0.15).toInt()} kg'
-        : '+15 kg';
+        : '--';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -545,15 +442,11 @@ class _ProgressViewState extends State<ProgressView> {
   }
 
   Widget _buildBodyMeasurementsSection(BuildContext context, ProgressViewModel vm) {
-    final latestWeight = vm.measurements.isNotEmpty && vm.measurements.first.weightKg != null
-        ? vm.measurements.first.weightKg!
-        : 78.4;
-    final latestArms = vm.measurements.isNotEmpty && vm.measurements.first.armsCm != null
-        ? vm.measurements.first.armsCm!
-        : 39.5;
-    final latestWaist = vm.measurements.isNotEmpty && vm.measurements.first.waistCm != null
-        ? vm.measurements.first.waistCm!
-        : 79.0;
+    final latestWeight = vm.latestWeight;
+    final latestArms = vm.latestArms;
+    final latestWaist = vm.latestWaist;
+    final latestThighs = vm.latestThighs;
+    final latestCalves = vm.latestCalves;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -561,17 +454,22 @@ class _ProgressViewState extends State<ProgressView> {
         const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'MEDIDAS CORPORAIS',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textSecondary,
-                letterSpacing: 0.8,
+            Expanded(
+              child: Text(
+                'MEDIDAS CORPORAIS',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 0.8,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
+            SizedBox(width: 8),
             Text(
-              'Últimos 30 dias',
+              'Histórico Real',
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
@@ -624,7 +522,7 @@ class _ProgressViewState extends State<ProgressView> {
                           text: TextSpan(
                             children: [
                               TextSpan(
-                                text: latestWeight.toStringAsFixed(1),
+                                text: latestWeight != null ? latestWeight.toStringAsFixed(1) : '--',
                                 style: const TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w900,
@@ -648,36 +546,35 @@ class _ProgressViewState extends State<ProgressView> {
                 ),
               ),
               const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryNeon.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.primaryNeon.withValues(alpha: 0.2)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      (vm.deltaWeight ?? -2.1) <= 0
-                          ? Icons.arrow_downward_rounded
-                          : Icons.arrow_upward_rounded,
-                      color: AppColors.primaryNeon,
-                      size: 12,
-                    ),
-                    const SizedBox(width: 2),
-                    Text(
-                      vm.deltaWeight != null
-                          ? '${vm.deltaWeight! >= 0 ? '+' : ''}${vm.deltaWeight!.toStringAsFixed(1)} kg'
-                          : '-2,1 kg',
-                      style: const TextStyle(
+              if (vm.deltaWeight != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryNeon.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.primaryNeon.withValues(alpha: 0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        vm.deltaWeight! <= 0
+                            ? Icons.arrow_downward_rounded
+                            : Icons.arrow_upward_rounded,
                         color: AppColors.primaryNeon,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
+                        size: 12,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 2),
+                      Text(
+                        '${vm.deltaWeight! >= 0 ? '+' : ''}${vm.deltaWeight!.toStringAsFixed(1)} kg',
+                        style: const TextStyle(
+                          color: AppColors.primaryNeon,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
             ],
           ),
         ),
@@ -700,15 +597,20 @@ class _ProgressViewState extends State<ProgressView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'BRAÇO',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textSecondary,
-                            letterSpacing: 0.6,
+                        const Expanded(
+                          child: Text(
+                            'BRAÇO',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textSecondary,
+                              letterSpacing: 0.6,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        const SizedBox(width: 4),
                         Container(
                           width: 28,
                           height: 28,
@@ -726,7 +628,7 @@ class _ProgressViewState extends State<ProgressView> {
                       text: TextSpan(
                         children: [
                           TextSpan(
-                            text: latestArms.toStringAsFixed(1),
+                            text: latestArms != null ? latestArms.toStringAsFixed(1) : '--',
                             style: const TextStyle(
                               fontSize: 19,
                               fontWeight: FontWeight.w900,
@@ -745,28 +647,27 @@ class _ProgressViewState extends State<ProgressView> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          (vm.deltaArms ?? 1.2) >= 0
-                              ? Icons.arrow_upward_rounded
-                              : Icons.arrow_downward_rounded,
-                          color: AppColors.primaryNeon,
-                          size: 12,
-                        ),
-                        const SizedBox(width: 2),
-                        Text(
-                          vm.deltaArms != null
-                              ? '${vm.deltaArms! >= 0 ? '+' : ''}${vm.deltaArms!.toStringAsFixed(1)} cm'
-                              : '+1,2 cm',
-                          style: const TextStyle(
+                    if (vm.deltaArms != null)
+                      Row(
+                        children: [
+                          Icon(
+                            vm.deltaArms! >= 0
+                                ? Icons.arrow_upward_rounded
+                                : Icons.arrow_downward_rounded,
                             color: AppColors.primaryNeon,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
+                            size: 12,
                           ),
-                        ),
-                      ],
-                    ),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${vm.deltaArms! >= 0 ? '+' : ''}${vm.deltaArms!.toStringAsFixed(1)} cm',
+                            style: const TextStyle(
+                              color: AppColors.primaryNeon,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),
@@ -786,15 +687,20 @@ class _ProgressViewState extends State<ProgressView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'CINTURA',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textSecondary,
-                            letterSpacing: 0.6,
+                        const Expanded(
+                          child: Text(
+                            'CINTURA',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textSecondary,
+                              letterSpacing: 0.6,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        const SizedBox(width: 4),
                         Container(
                           width: 28,
                           height: 28,
@@ -812,7 +718,7 @@ class _ProgressViewState extends State<ProgressView> {
                       text: TextSpan(
                         children: [
                           TextSpan(
-                            text: latestWaist.toStringAsFixed(1),
+                            text: latestWaist != null ? latestWaist.toStringAsFixed(1) : '--',
                             style: const TextStyle(
                               fontSize: 19,
                               fontWeight: FontWeight.w900,
@@ -831,28 +737,189 @@ class _ProgressViewState extends State<ProgressView> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          (vm.deltaWaist ?? -3.5) <= 0
-                              ? Icons.arrow_downward_rounded
-                              : Icons.arrow_upward_rounded,
-                          color: AppColors.primaryNeon,
-                          size: 12,
-                        ),
-                        const SizedBox(width: 2),
-                        Text(
-                          vm.deltaWaist != null
-                              ? '${vm.deltaWaist! >= 0 ? '+' : ''}${vm.deltaWaist!.toStringAsFixed(1)} cm'
-                              : '-3,5 cm',
-                          style: const TextStyle(
+                    if (vm.deltaWaist != null)
+                      Row(
+                        children: [
+                          Icon(
+                            vm.deltaWaist! <= 0
+                                ? Icons.arrow_downward_rounded
+                                : Icons.arrow_upward_rounded,
                             color: AppColors.primaryNeon,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
+                            size: 12,
                           ),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${vm.deltaWaist! >= 0 ? '+' : ''}${vm.deltaWaist!.toStringAsFixed(1)} cm',
+                            style: const TextStyle(
+                              color: AppColors.primaryNeon,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // Grid Duplo: Coxas & Panturrilhas
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF18191D),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: const Color(0xFF26272B)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'COXAS',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textSecondary,
+                              letterSpacing: 0.6,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryNeon.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.primaryNeon.withValues(alpha: 0.2)),
+                          ),
+                          child: const Icon(Icons.straighten_rounded, color: AppColors.primaryNeon, size: 14),
                         ),
                       ],
                     ),
+                    const SizedBox(height: 10),
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: latestThighs != null ? latestThighs.toStringAsFixed(1) : '--',
+                            style: const TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const TextSpan(
+                            text: ' cm',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    if (vm.deltaThighs != null)
+                      Text(
+                        '${vm.deltaThighs! >= 0 ? '+' : ''}${vm.deltaThighs!.toStringAsFixed(1)} cm',
+                        style: const TextStyle(
+                          color: AppColors.primaryNeon,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF18191D),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: const Color(0xFF26272B)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'PANTURRILHAS',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textSecondary,
+                              letterSpacing: 0.6,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryNeon.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.primaryNeon.withValues(alpha: 0.2)),
+                          ),
+                          child: const Icon(Icons.circle_outlined, color: AppColors.primaryNeon, size: 14),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: latestCalves != null ? latestCalves.toStringAsFixed(1) : '--',
+                            style: const TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const TextSpan(
+                            text: ' cm',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    if (vm.deltaCalves != null)
+                      Text(
+                        '${vm.deltaCalves! >= 0 ? '+' : ''}${vm.deltaCalves!.toStringAsFixed(1)} cm',
+                        style: const TextStyle(
+                          color: AppColors.primaryNeon,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -860,6 +927,70 @@ class _ProgressViewState extends State<ProgressView> {
           ],
         ),
         const SizedBox(height: 14),
+
+        // Acesso à Galeria Fotográfica de Evolução (Antes vs Depois)
+        InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ComparativePhotoView()),
+            );
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFF18191D),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.primaryNeon.withValues(alpha: 0.25)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryNeon.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.compare_rounded,
+                    color: AppColors.primaryNeon,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Galeria Fotográfica de Evolução',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Comparar fotos Antes vs Depois',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: AppColors.textSecondary,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
 
         // Botão Primário Neon: Registrar Medidas
         SizedBox(
@@ -893,24 +1024,41 @@ class _ProgressViewState extends State<ProgressView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'HISTÓRICO RECENTE',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textSecondary,
-                letterSpacing: 0.8,
+            const Expanded(
+              child: Text(
+                'HISTÓRICO RECENTE',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 0.8,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            Text(
-              'Ver todos',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryNeon,
+            const SizedBox(width: 8),
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const WorkoutHistoryView()),
+                );
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                child: Text(
+                  'Ver todos',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryNeon,
+                  ),
+                ),
               ),
             ),
           ],
@@ -922,7 +1070,7 @@ class _ProgressViewState extends State<ProgressView> {
             icon: Icons.monitor_weight_outlined,
             title: 'Registro de Medidas',
             dateText: 'Recente',
-            subtitle: 'Peso: ${latestM.weightKg?.toStringAsFixed(1) ?? "78.4"} kg • Braço: ${latestM.armsCm?.toStringAsFixed(1) ?? "39.5"} cm',
+            subtitle: 'Peso: ${latestM.weightKg != null ? "${latestM.weightKg!.toStringAsFixed(1)} kg" : "--"} • Braço: ${latestM.armsCm != null ? "${latestM.armsCm!.toStringAsFixed(1)} cm" : "--"}',
             badgeText: 'CONCLUÍDO',
             isNeonBadge: true,
           ),
@@ -933,18 +1081,20 @@ class _ProgressViewState extends State<ProgressView> {
             icon: Icons.workspace_premium_outlined,
             title: 'Recorde (PR): ${topPr.exerciseName}',
             dateText: 'Recorde',
-            subtitle: '${topPr.maxWeightKg.toInt()} kg × ${topPr.maxRepsAtMaxWeight} reps • 1RM: ${topPr.estimated1RM.toInt()} kg',
-            badgeText: topPr.shouldProgressWeight ? '+ PROGRESSÃO' : 'RECORD',
+            subtitle: topPr.shouldProgressWeight
+                ? '${topPr.maxWeightKg.toInt()} kg × ${topPr.maxRepsAtMaxWeight} • 1RM: ${topPr.estimated1RM.toInt()} kg • Próx: ${topPr.suggestedNextWeightKg.toStringAsFixed(1)} kg'
+                : '${topPr.maxWeightKg.toInt()} kg × ${topPr.maxRepsAtMaxWeight} reps • 1RM: ${topPr.estimated1RM.toInt()} kg',
+            badgeText: topPr.shouldProgressWeight ? '+2.5 kg' : 'RECORD',
             isNeonBadge: true,
           )
         else
           _buildHistoryItem(
             icon: Icons.workspace_premium_outlined,
-            title: 'Novo Recorde (PR)',
-            dateText: '3 dias atrás',
-            subtitle: 'Supino Reto: 80 kg × 8 reps',
-            badgeText: '+5 kg PR',
-            isNeonBadge: true,
+            title: 'Sem Recorde Registrado',
+            dateText: '--',
+            subtitle: 'Complete séries no treino ativo para registrar PRs',
+            badgeText: 'STANDBY',
+            isNeonBadge: false,
           ),
         const SizedBox(height: 8),
 
@@ -960,10 +1110,10 @@ class _ProgressViewState extends State<ProgressView> {
         else
           _buildHistoryItem(
             icon: Icons.check_circle_outline_rounded,
-            title: 'Check-in Físico Semanal',
-            dateText: 'Semana 12',
-            subtitle: 'Metas de BF e circunferência atingidas',
-            badgeText: 'AVALIADO',
+            title: 'Nenhum Treino Realizado',
+            dateText: '--',
+            subtitle: 'Inicie e complete um treino para visualizar o histórico',
+            badgeText: 'STANDBY',
             isNeonBadge: false,
           ),
       ],
@@ -1075,7 +1225,12 @@ class _ProgressViewState extends State<ProgressView> {
     );
   }
 
-  Widget _buildMonthlyConsistencyCard() {
+  Widget _buildMonthlyConsistencyCard(ProgressViewModel vm) {
+    final completed = vm.sessions.length;
+    const target = 20;
+    final ratio = (completed / target).clamp(0.0, 1.0);
+    final percent = (ratio * 100).toInt();
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1086,10 +1241,10 @@ class _ProgressViewState extends State<ProgressView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
+              const Row(
                 children: [
                   CircleAvatar(radius: 3, backgroundColor: AppColors.primaryNeon),
                   SizedBox(width: 6),
@@ -1105,8 +1260,8 @@ class _ProgressViewState extends State<ProgressView> {
                 ],
               ),
               Text(
-                '18 / 20 treinos',
-                style: TextStyle(
+                '$completed / $target treinos',
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w900,
                   color: AppColors.primaryNeon,
@@ -1117,24 +1272,32 @@ class _ProgressViewState extends State<ProgressView> {
           const SizedBox(height: 10),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
-            child: const LinearProgressIndicator(
-              value: 0.90,
+            child: LinearProgressIndicator(
+              value: ratio,
               minHeight: 8,
-              backgroundColor: Color(0xFF22242A),
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryNeon),
+              backgroundColor: const Color(0xFF22242A),
+              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryNeon),
             ),
           ),
           const SizedBox(height: 8),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '90% concluído',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
+                '$percent% concluído',
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
               ),
-              Text(
-                'Faltam 2 treinos para bater a meta',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  completed >= target
+                      ? 'Meta mensal atingida!'
+                      : 'Faltam ${target - completed} treinos para bater a meta',
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
+                  textAlign: TextAlign.end,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
@@ -1179,57 +1342,71 @@ class _NeonChartPainter extends CustomPainter {
       }
     } else if (loadPoints.length == 1) {
       final p = loadPoints.first;
-      points.add(Offset(size.width * 0.15, size.height * 0.70));
-      labels.add('${(p.weightKg - 10).clamp(10, 200).toInt()}kg');
-      points.add(Offset(size.width * 0.85, size.height * 0.35));
+      points.add(Offset(size.width * 0.5, size.height * 0.5));
       labels.add('${p.weightKg.toInt()}kg');
     } else {
-      points.addAll([
-        Offset(size.width * 0.08, size.height * 0.88),
-        Offset(size.width * 0.35, size.height * 0.65),
-        Offset(size.width * 0.65, size.height * 0.40),
-        Offset(size.width * 0.92, size.height * 0.16),
-      ]);
-      labels.addAll(['70kg', '80kg', '92kg', '100kg']);
+      // Zero mock data (Pilar I): se não houver registros, exibe empty state limpo
+      final textSpan = TextSpan(
+        text: 'Nenhum registro de carga ainda\nComplete um treino com este exercício',
+        style: TextStyle(
+          color: AppColors.textSecondary.withValues(alpha: 0.6),
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          height: 1.4,
+        ),
+      );
+      final textPainter = TextPainter(
+        text: textSpan,
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.ltr,
+      )..layout(maxWidth: size.width - 40);
+
+      textPainter.paint(
+        canvas,
+        Offset((size.width - textPainter.width) / 2, (size.height - textPainter.height) / 2),
+      );
+      return;
     }
 
-    final path = Path();
-    path.moveTo(points[0].dx, points[0].dy);
-    for (int i = 0; i < points.length - 1; i++) {
-      final p0 = points[i];
-      final p1 = points[i + 1];
-      final controlPoint = Offset((p0.dx + p1.dx) / 2, (p0.dy + p1.dy) / 2);
-      path.quadraticBezierTo(p0.dx, p0.dy, controlPoint.dx, controlPoint.dy);
+    if (points.length >= 2) {
+      final path = Path();
+      path.moveTo(points[0].dx, points[0].dy);
+      for (int i = 0; i < points.length - 1; i++) {
+        final p0 = points[i];
+        final p1 = points[i + 1];
+        final controlPoint = Offset((p0.dx + p1.dx) / 2, (p0.dy + p1.dy) / 2);
+        path.quadraticBezierTo(p0.dx, p0.dy, controlPoint.dx, controlPoint.dy);
+      }
+      path.lineTo(points.last.dx, points.last.dy);
+
+      // Gradiente abaixo da curva
+      final fillPath = Path.from(path)
+        ..lineTo(points.last.dx, size.height * 0.96)
+        ..lineTo(points.first.dx, size.height * 0.96)
+        ..close();
+
+      final fillPaint = Paint()
+        ..shader = LinearGradient(
+          colors: [
+            AppColors.primaryNeon.withValues(alpha: 0.35),
+            AppColors.primaryNeon.withValues(alpha: 0.0),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+      canvas.drawPath(fillPath, fillPaint);
+
+      // Linha neon principal
+      final linePaint = Paint()
+        ..color = AppColors.primaryNeon
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3.5
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+
+      canvas.drawPath(path, linePaint);
     }
-    path.lineTo(points.last.dx, points.last.dy);
-
-    // Gradiente abaixo da curva
-    final fillPath = Path.from(path)
-      ..lineTo(points.last.dx, size.height * 0.96)
-      ..lineTo(points.first.dx, size.height * 0.96)
-      ..close();
-
-    final fillPaint = Paint()
-      ..shader = LinearGradient(
-        colors: [
-          AppColors.primaryNeon.withValues(alpha: 0.35),
-          AppColors.primaryNeon.withValues(alpha: 0.0),
-        ],
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
-
-    canvas.drawPath(fillPath, fillPaint);
-
-    // Linha neon principal
-    final linePaint = Paint()
-      ..color = AppColors.primaryNeon
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.5
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    canvas.drawPath(path, linePaint);
 
     for (int i = 0; i < points.length; i++) {
       final pt = points[i];

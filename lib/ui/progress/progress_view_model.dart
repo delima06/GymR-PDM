@@ -24,38 +24,23 @@ class ProgressViewModel extends ChangeNotifier {
   double? get latestArms => _measurements.isNotEmpty ? _measurements.first.armsCm : null;
   double? get latestWaist => _measurements.isNotEmpty ? _measurements.first.waistCm : null;
   double? get latestBodyFat => _measurements.isNotEmpty ? _measurements.first.bodyFatPercentage : null;
+  double? get latestThighs => _measurements.isNotEmpty ? _measurements.first.thighsCm : null;
+  double? get latestCalves => _measurements.isNotEmpty ? _measurements.first.calvesCm : null;
 
-  double? get deltaWeight {
+  double? _computeDelta(double? Function(MeasurementRecord) selector) {
     if (_measurements.length < 2) return null;
-    final curr = _measurements[0].weightKg;
-    final prev = _measurements[1].weightKg;
+    final curr = selector(_measurements[0]);
+    final prev = selector(_measurements[1]);
     if (curr == null || prev == null) return null;
     return curr - prev;
   }
 
-  double? get deltaArms {
-    if (_measurements.length < 2) return null;
-    final curr = _measurements[0].armsCm;
-    final prev = _measurements[1].armsCm;
-    if (curr == null || prev == null) return null;
-    return curr - prev;
-  }
-
-  double? get deltaWaist {
-    if (_measurements.length < 2) return null;
-    final curr = _measurements[0].waistCm;
-    final prev = _measurements[1].waistCm;
-    if (curr == null || prev == null) return null;
-    return curr - prev;
-  }
-
-  double? get deltaBodyFat {
-    if (_measurements.length < 2) return null;
-    final curr = _measurements[0].bodyFatPercentage;
-    final prev = _measurements[1].bodyFatPercentage;
-    if (curr == null || prev == null) return null;
-    return curr - prev;
-  }
+  double? get deltaWeight => _computeDelta((m) => m.weightKg);
+  double? get deltaArms => _computeDelta((m) => m.armsCm);
+  double? get deltaWaist => _computeDelta((m) => m.waistCm);
+  double? get deltaBodyFat => _computeDelta((m) => m.bodyFatPercentage);
+  double? get deltaThighs => _computeDelta((m) => m.thighsCm);
+  double? get deltaCalves => _computeDelta((m) => m.calvesCm);
 
   List<ExerciseLoadPoint> _selectedExercisePoints = [];
   List<ExerciseLoadPoint> get selectedExercisePoints => _selectedExercisePoints;
@@ -91,6 +76,9 @@ class ProgressViewModel extends ChangeNotifier {
     double? armsCm,
     double? waistCm,
     double? chestCm,
+    double? thighsCm,
+    double? calvesCm,
+    List<String>? photoPaths,
   }) async {
     final record = MeasurementRecord(
       id: const Uuid().v4(),
@@ -100,6 +88,9 @@ class ProgressViewModel extends ChangeNotifier {
       armsCm: armsCm,
       waistCm: waistCm,
       chestCm: chestCm,
+      thighsCm: thighsCm,
+      calvesCm: calvesCm,
+      photoPaths: photoPaths ?? const [],
     );
 
     try {

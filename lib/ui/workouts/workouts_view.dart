@@ -2,17 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/exercise_images.dart';
+import '../../data/repositories/exercise_repository.dart';
 import '../../domain/models/exercise.dart';
 import '../../domain/models/workout.dart';
 import '../widgets/gymr_logo_title.dart';
 import 'workouts_view_model.dart';
 import 'create_workout_view.dart';
+import '../exercises/exercise_catalog_view.dart';
 import '../exercises/exercise_detail_view.dart';
 
 class WorkoutsView extends StatefulWidget {
   final Function(String workoutId)? onStartWorkoutById;
 
   const WorkoutsView({super.key, this.onStartWorkoutById});
+
+  /// Formata dinamicamente o rótulo de exibição para chips de seleção de treino/divisão
+  static String formatChipLabel(Workout workout, int index) {
+    if (workout.split.isNotEmpty && workout.name.isNotEmpty) {
+      if (workout.name.trim().toLowerCase() == workout.split.trim().toLowerCase()) {
+        return workout.name;
+      } else {
+        return '${workout.split} • ${workout.name}';
+      }
+    } else if (workout.split.isNotEmpty) {
+      return workout.split;
+    } else if (workout.name.isNotEmpty) {
+      return workout.name;
+    } else {
+      return 'Treino ${index + 1}';
+    }
+  }
 
   @override
   State<WorkoutsView> createState() => _WorkoutsViewState();
@@ -55,39 +74,27 @@ class _WorkoutsViewState extends State<WorkoutsView> {
         title: const GymrLogoTitle(title: 'Minhas Fichas'),
         actions: [
           IconButton(
-            icon: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF18191D),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                  ),
-                  child: const Icon(
-                    Icons.notifications_none,
-                    size: 20,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                Positioned(
-                  top: 2,
-                  right: 2,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryNeon,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF0B0C0E), width: 1.5),
-                    ),
-                  ),
-                ),
-              ],
+            tooltip: 'Catálogo de Exercícios',
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF18191D),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              ),
+              child: const Icon(
+                Icons.menu_book_rounded,
+                size: 20,
+                color: AppColors.primaryNeon,
+              ),
             ),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ExerciseCatalogView()),
+              );
+            },
           ),
+          const SizedBox(width: 8),
           const SizedBox(width: 8),
         ],
       ),
@@ -286,6 +293,8 @@ class _WorkoutsViewState extends State<WorkoutsView> {
               final workout = vm.workouts[index];
               final isSelected = vm.selectedWorkoutIndex == index;
 
+              final String chipLabel = WorkoutsView.formatChipLabel(workout, index);
+
               return InkWell(
                 onTap: () => vm.selectWorkout(index),
                 borderRadius: BorderRadius.circular(20),
@@ -319,7 +328,7 @@ class _WorkoutsViewState extends State<WorkoutsView> {
                         const SizedBox(width: 6),
                       ],
                       Text(
-                        workout.split.isNotEmpty ? workout.split : 'Treino ${index + 1}',
+                        chipLabel,
                         style: TextStyle(
                           color: isSelected ? AppColors.textOnNeon : AppColors.textSecondary,
                           fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
@@ -476,18 +485,38 @@ class _WorkoutsViewState extends State<WorkoutsView> {
     WorkoutsViewModel vm,
   ) {
     return InkWell(
-      onTap: () {
+      onTap: () async {
+        final exerciseRepo = ExerciseRepository();
+        Exercise? realExercise;
+        try {
+          realExercise = await exerciseRepo.getExerciseById(exercise.exerciseId);
+        } catch (_) {
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Erro ao carregar detalhes do exercício.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+          return;
+        }
+
+        if (!context.mounted) return;
+
+        if (realExercise == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Detalhes do exercício não encontrados no catálogo local.'),
+              backgroundColor: AppColors.surfaceElevated,
+            ),
+          );
+          return;
+        }
+
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => ExerciseDetailView(
-              exercise: Exercise(
-                id: exercise.exerciseId,
-                name: exercise.exerciseName,
-                muscleGroup: 'Musculação',
-                equipment: 'Equipamento',
-                instructions:
-                    'Execute com cadência controlada e amplitude completa mantendo a postura firme.',
-              ),
+              exercise: realExercise!,
             ),
           ),
         );
@@ -516,15 +545,11 @@ class _WorkoutsViewState extends State<WorkoutsView> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(13),
-                    child: Image.network(
-                      ExerciseImageHelper.getExerciseImageUrl(exercise.exerciseName) ?? '',
+                    child: ExerciseImageHelper.getExerciseImage(
+                      exercise.exerciseName,
                       width: 54,
                       height: 54,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Center(
-                        child: Icon(Icons.fitness_center_rounded,
-                            color: AppColors.primaryNeon, size: 22),
-                      ),
                     ),
                   ),
                 ),

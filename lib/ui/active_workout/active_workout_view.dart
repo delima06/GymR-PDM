@@ -198,44 +198,52 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryNeon.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: AppColors.primaryNeon.withValues(alpha: 0.3)),
-                        ),
-                        child: Text(
-                          vm.workout?.split ?? 'Treino',
-                          style: const TextStyle(
-                            color: AppColors.primaryNeon,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryNeon.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: AppColors.primaryNeon.withValues(alpha: 0.3)),
+                            ),
+                            child: Text(
+                              vm.workout?.split ?? 'Treino',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: AppColors.primaryNeon,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${vm.exerciseItems.length} Exercícios',
-                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    vm.workout?.name ?? 'Sessão Livre',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.textPrimary,
+                        const SizedBox(width: 8),
+                        Text(
+                          '${vm.exerciseItems.length} Exercícios',
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      vm.workout?.name ?? 'Sessão Livre',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -297,21 +305,27 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
-                children: [
-                  Icon(Icons.timer, color: AppColors.primaryNeon, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    'INTERVALO DE DESCANSO',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textSecondary,
-                      letterSpacing: 0.5,
+              const Expanded(
+                child: Row(
+                  children: [
+                    Icon(Icons.timer, color: AppColors.primaryNeon, size: 20),
+                    SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'INTERVALO DE DESCANSO',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textSecondary,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
@@ -406,6 +420,7 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
     ActiveExerciseItem item,
   ) {
     return Container(
+      key: ValueKey('exercise_card_${item.exercise.exerciseId}_$exIndex'),
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -502,6 +517,7 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
             final isDone = s.isCompleted;
 
             return Container(
+              key: ValueKey('set_row_${item.exercise.exerciseId}_${exIndex}_$setIndex'),
               margin: const EdgeInsets.only(bottom: 6),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               decoration: BoxDecoration(
@@ -530,6 +546,7 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
                       child: SizedBox(
                         height: 38,
                         child: TextFormField(
+                          key: ValueKey('weight_field_${item.exercise.exerciseId}_${exIndex}_$setIndex'),
                           initialValue: s.weightKg.toStringAsFixed(1),
                           textAlign: TextAlign.center,
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -552,6 +569,7 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
                       child: SizedBox(
                         height: 38,
                         child: TextFormField(
+                          key: ValueKey('reps_field_${item.exercise.exerciseId}_${exIndex}_$setIndex'),
                           initialValue: s.reps.toString(),
                           textAlign: TextAlign.center,
                           keyboardType: TextInputType.number,
@@ -572,6 +590,7 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
                     width: 50,
                     child: Center(
                       child: InkWell(
+                        key: ValueKey('check_button_${item.exercise.exerciseId}_${exIndex}_$setIndex'),
                         onTap: () => vm.toggleSetCompleted(exIndex, setIndex),
                         borderRadius: BorderRadius.circular(10),
                         child: AnimatedContainer(
@@ -610,8 +629,10 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
           const SizedBox(height: 6),
 
           // Botões simplificados de adicionar/remover série extra
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+          Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 8,
+            runSpacing: 4,
             children: [
               if (item.sets.length > 1)
                 TextButton(
