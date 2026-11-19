@@ -91,31 +91,28 @@ class ProfileViewModel extends ChangeNotifier {
 
       // 2. Carrega histórico de medições corporais reais
       final measurements = await _historyRepository.getMeasurements();
-      if (measurements.isNotEmpty) {
-        final latest = measurements.first;
-        if (latest.weightKg != null && latest.weightKg! > 0) {
-          currentWeightKg = latest.weightKg!;
-        }
-        if (latest.bodyFatPercentage != null && latest.bodyFatPercentage! > 0) {
-          bodyFatPercentage = latest.bodyFatPercentage!;
-        }
+      final weights = measurements
+          .where((m) => m.weightKg != null && m.weightKg! > 0)
+          .map((m) => m.weightKg!)
+          .toList();
+      if (weights.isNotEmpty) {
+        currentWeightKg = weights.first;
+        weightDeltaKg = weights.length >= 2 ? weights[0] - weights[1] : 0.0;
+      } else {
+        currentWeightKg = 0.0;
+        weightDeltaKg = 0.0;
+      }
 
-        if (measurements.length >= 2) {
-          final prev = measurements[1];
-          if (prev.weightKg != null && latest.weightKg != null) {
-            weightDeltaKg = latest.weightKg! - prev.weightKg!;
-          } else {
-            weightDeltaKg = 0.0;
-          }
-          if (prev.bodyFatPercentage != null && latest.bodyFatPercentage != null) {
-            bodyFatDelta = latest.bodyFatPercentage! - prev.bodyFatPercentage!;
-          } else {
-            bodyFatDelta = 0.0;
-          }
-        } else {
-          weightDeltaKg = 0.0;
-          bodyFatDelta = 0.0;
-        }
+      final bodyFats = measurements
+          .where((m) => m.bodyFatPercentage != null && m.bodyFatPercentage! > 0)
+          .map((m) => m.bodyFatPercentage!)
+          .toList();
+      if (bodyFats.isNotEmpty) {
+        bodyFatPercentage = bodyFats.first;
+        bodyFatDelta = bodyFats.length >= 2 ? bodyFats[0] - bodyFats[1] : 0.0;
+      } else {
+        bodyFatPercentage = 0.0;
+        bodyFatDelta = 0.0;
       }
 
       // 3. Carrega Recordes Pessoais reais ordenados por 1RM

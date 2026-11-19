@@ -20,19 +20,34 @@ class ProgressViewModel extends ChangeNotifier {
   List<MeasurementRecord> _measurements = [];
   List<MeasurementRecord> get measurements => _measurements;
 
-  double? get latestWeight => _measurements.isNotEmpty ? _measurements.first.weightKg : null;
-  double? get latestArms => _measurements.isNotEmpty ? _measurements.first.armsCm : null;
-  double? get latestWaist => _measurements.isNotEmpty ? _measurements.first.waistCm : null;
-  double? get latestBodyFat => _measurements.isNotEmpty ? _measurements.first.bodyFatPercentage : null;
-  double? get latestThighs => _measurements.isNotEmpty ? _measurements.first.thighsCm : null;
-  double? get latestCalves => _measurements.isNotEmpty ? _measurements.first.calvesCm : null;
+  double? _latestNonNull(double? Function(MeasurementRecord) selector) {
+    for (final m in _measurements) {
+      final val = selector(m);
+      if (val != null) return val;
+    }
+    return null;
+  }
+
+  double? get latestWeight => _latestNonNull((m) => m.weightKg);
+  double? get latestArms => _latestNonNull((m) => m.armsCm);
+  double? get latestWaist => _latestNonNull((m) => m.waistCm);
+  double? get latestBodyFat => _latestNonNull((m) => m.bodyFatPercentage);
+  double? get latestThighs => _latestNonNull((m) => m.thighsCm);
+  double? get latestCalves => _latestNonNull((m) => m.calvesCm);
 
   double? _computeDelta(double? Function(MeasurementRecord) selector) {
-    if (_measurements.length < 2) return null;
-    final curr = selector(_measurements[0]);
-    final prev = selector(_measurements[1]);
-    if (curr == null || prev == null) return null;
-    return curr - prev;
+    double? curr;
+    for (final m in _measurements) {
+      final val = selector(m);
+      if (val != null) {
+        if (curr == null) {
+          curr = val;
+        } else {
+          return curr - val;
+        }
+      }
+    }
+    return null;
   }
 
   double? get deltaWeight => _computeDelta((m) => m.weightKg);
