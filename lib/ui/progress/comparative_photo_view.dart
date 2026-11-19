@@ -1,12 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/repositories/history_repository.dart';
 import '../widgets/gymr_logo_title.dart';
+import 'add_evolution_photo_view.dart';
 import 'progress_view_model.dart';
 
 /// Tela de Galeria de Fotos Comparativas (Antes vs Depois)
@@ -32,189 +30,11 @@ class _ComparativePhotoViewState extends State<ComparativePhotoView> {
     });
   }
 
-  Future<String?> _pickAndPersistImage(ImageSource source) async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: source, imageQuality: 85);
-    if (picked == null) return null;
-
-    final docsDir = await getApplicationDocumentsDirectory();
-    final photosDir = Directory(p.join(docsDir.path, 'evolution_photos'));
-    if (!await photosDir.exists()) {
-      await photosDir.create(recursive: true);
-    }
-
-    final ext = p.extension(picked.path).isNotEmpty ? p.extension(picked.path) : '.jpg';
-    final destPath = p.join(
-      photosDir.path,
-      'evo_${DateTime.now().millisecondsSinceEpoch}$ext',
+  void _openAddPhotoScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AddEvolutionPhotoView()),
     );
-    await File(picked.path).copy(destPath);
-    return destPath;
-  }
-
-  void _showAddPhotoDialog(BuildContext context, ProgressViewModel vm) {
-    final weightController = TextEditingController();
-    String? selectedPath;
-    String? pickerError;
-    bool isPicking = false;
-
-    showDialog(
-      context: context,
-      builder: (dialogCtx) {
-        return StatefulBuilder(
-          builder: (ctx, setDialogState) {
-            Future<void> handlePick(ImageSource source) async {
-              setDialogState(() {
-                isPicking = true;
-                pickerError = null;
-              });
-              try {
-                final savedPath = await _pickAndPersistImage(source);
-                if (savedPath != null && ctx.mounted) {
-                  setDialogState(() {
-                    selectedPath = savedPath;
-                  });
-                }
-              } catch (_) {
-                if (ctx.mounted) {
-                  setDialogState(() {
-                    pickerError = 'Não foi possível acessar a mídia neste dispositivo.';
-                  });
-                }
-              } finally {
-                if (ctx.mounted) {
-                  setDialogState(() => isPicking = false);
-                }
-              }
-            }
-
-            return AlertDialog(
-              backgroundColor: AppColors.surfaceCard,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: const BorderSide(color: AppColors.surfaceBorder),
-              ),
-              title: const Text(
-                'Registrar Foto de Evolução',
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: isPicking ? null : () => handlePick(ImageSource.camera),
-                            icon: const Icon(Icons.camera_alt_rounded, size: 18),
-                            label: const Text('Câmera'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.primaryNeon,
-                              side: BorderSide(color: AppColors.primaryNeon.withValues(alpha: 0.4)),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: isPicking ? null : () => handlePick(ImageSource.gallery),
-                            icon: const Icon(Icons.photo_library_rounded, size: 18),
-                            label: const Text('Galeria'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.primaryNeon,
-                              side: BorderSide(color: AppColors.primaryNeon.withValues(alpha: 0.4)),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (isPicking) ...[
-                      const SizedBox(height: 12),
-                      const LinearProgressIndicator(color: AppColors.primaryNeon),
-                    ],
-                    if (pickerError != null) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        pickerError!,
-                        style: const TextStyle(color: AppColors.error, fontSize: 12),
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-                    if (selectedPath != null && File(selectedPath!).existsSync())
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.file(
-                          File(selectedPath!),
-                          height: 140,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    else
-                      Container(
-                        height: 92,
-                        width: double.infinity,
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceElevated,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.surfaceBorder),
-                        ),
-                        child: const Text(
-                          'Nenhuma foto selecionada.\nEscolha Câmera ou Galeria acima.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                        ),
-                      ),
-                    const SizedBox(height: 14),
-                    TextField(
-                      controller: weightController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(
-                        labelText: 'Peso (opcional)',
-                        hintText: 'Ex: 78,5',
-                        suffixText: 'kg',
-                        prefixIcon: Icon(Icons.monitor_weight_outlined, size: 18),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogCtx),
-                  child: const Text('CANCELAR', style: TextStyle(color: AppColors.textSecondary)),
-                ),
-                ElevatedButton(
-                  onPressed: selectedPath == null
-                      ? null
-                      : () async {
-                          final path = selectedPath!;
-                          final weight = double.tryParse(
-                            weightController.text.trim().replaceAll(',', '.'),
-                          );
-                          Navigator.pop(dialogCtx);
-
-                          await vm.addMeasurement(
-                            weightKg: weight,
-                            photoPaths: [path],
-                          );
-                        },
-                  child: const Text('SALVAR FOTO'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    ).whenComplete(() {
-      weightController.dispose();
-    });
   }
 
   Widget _buildPhotoWidget(String path) {
@@ -290,7 +110,7 @@ class _ComparativePhotoViewState extends State<ComparativePhotoView> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddPhotoDialog(context, vm),
+        onPressed: () => _openAddPhotoScreen(context),
         backgroundColor: AppColors.primaryNeon,
         foregroundColor: AppColors.textOnNeon,
         icon: const Icon(Icons.add_a_photo_rounded),
@@ -680,7 +500,7 @@ class _ComparativePhotoViewState extends State<ComparativePhotoView> {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () => _showAddPhotoDialog(context, vm),
+              onPressed: () => _openAddPhotoScreen(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryNeon,
                 foregroundColor: AppColors.textOnNeon,
