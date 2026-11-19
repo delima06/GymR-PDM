@@ -59,6 +59,9 @@ class ActiveWorkoutViewModel extends ChangeNotifier {
   bool _isSessionActive = false;
   bool get isSessionActive => _isSessionActive;
 
+  int _sessionNonce = 0;
+  int get sessionNonce => _sessionNonce;
+
   DateTime? _sessionStartTime;
   int _sessionElapsedSeconds = 0;
   int get sessionElapsedSeconds => _sessionElapsedSeconds;
@@ -148,6 +151,7 @@ class ActiveWorkoutViewModel extends ChangeNotifier {
   }
 
   void _startSessionClock() {
+    _sessionNonce++;
     _sessionStartTime = DateTime.now();
     _sessionElapsedSeconds = 0;
     _isSessionActive = true;

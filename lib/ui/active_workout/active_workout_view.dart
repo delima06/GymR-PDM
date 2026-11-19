@@ -190,6 +190,7 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
         ],
       ),
       body: ListView(
+        key: ValueKey('active_session_list_${vm.sessionNonce}'),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
           // Cabeçalho da rotina

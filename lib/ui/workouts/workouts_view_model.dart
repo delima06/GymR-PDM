@@ -1,12 +1,22 @@
 import 'package:flutter/foundation.dart';
+import '../../data/repositories/exercise_repository.dart';
 import '../../data/repositories/workout_repository.dart';
+import '../../domain/models/exercise.dart';
 import '../../domain/models/workout.dart';
 
 class WorkoutsViewModel extends ChangeNotifier {
   final WorkoutRepository _workoutRepository;
+  final ExerciseRepository _exerciseRepository;
 
-  WorkoutsViewModel({WorkoutRepository? workoutRepository})
-      : _workoutRepository = workoutRepository ?? WorkoutRepository();
+  WorkoutsViewModel({
+    WorkoutRepository? workoutRepository,
+    ExerciseRepository? exerciseRepository,
+  })  : _workoutRepository = workoutRepository ?? WorkoutRepository(),
+        _exerciseRepository = exerciseRepository ?? ExerciseRepository();
+
+  Future<Exercise?> getExerciseDetails(String exerciseId) {
+    return _exerciseRepository.getExerciseById(exerciseId);
+  }
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;

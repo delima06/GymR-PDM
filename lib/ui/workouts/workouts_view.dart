@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/exercise_images.dart';
-import '../../data/repositories/exercise_repository.dart';
 import '../../domain/models/exercise.dart';
 import '../../domain/models/workout.dart';
 import '../widgets/gymr_logo_title.dart';
@@ -486,10 +485,9 @@ class _WorkoutsViewState extends State<WorkoutsView> {
   ) {
     return InkWell(
       onTap: () async {
-        final exerciseRepo = ExerciseRepository();
         Exercise? realExercise;
         try {
-          realExercise = await exerciseRepo.getExerciseById(exercise.exerciseId);
+          realExercise = await vm.getExerciseDetails(exercise.exerciseId);
         } catch (_) {
           if (!context.mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
