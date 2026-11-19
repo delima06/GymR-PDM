@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'data/repositories/exercise_repository.dart';
@@ -13,6 +14,7 @@ import 'ui/main_navigation_scaffold.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  GoogleFonts.config.allowRuntimeFetching = false;
 
   // Instâncias singleton dos repositórios
   final exerciseRepository = ExerciseRepository();
