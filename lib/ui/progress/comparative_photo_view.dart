@@ -18,8 +18,8 @@ class ComparativePhotoView extends StatefulWidget {
 }
 
 class _ComparativePhotoViewState extends State<ComparativePhotoView> {
-  int _selectedBaselineIndex = 0;
-  int _selectedCurrentIndex = 0;
+  int? _selectedBaselineIndex;
+  int? _selectedCurrentIndex;
   bool _isSplitMode = true; // true = lado a lado; false = sobreposição/slider
 
   @override
@@ -85,10 +85,11 @@ class _ComparativePhotoViewState extends State<ComparativePhotoView> {
   Widget build(BuildContext context) {
     final vm = context.watch<ProgressViewModel>();
 
-    // Extrai medições que possuem foto cadastrada
+    // Extrai medições que possuem foto cadastrada em ordem cronológica (1ª foto = ANTES, última = DEPOIS)
     final photoRecords = vm.measurements
         .where((m) => m.photoPaths.isNotEmpty)
-        .toList();
+        .toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
 
     return Scaffold(
       appBar: AppBar(
@@ -172,8 +173,10 @@ class _ComparativePhotoViewState extends State<ComparativePhotoView> {
   }
 
   Widget _buildComparisonView(List<MeasurementRecord> records) {
-    final baselineRecord = records[_selectedBaselineIndex.clamp(0, records.length - 1)];
-    final currentRecord = records[_selectedCurrentIndex.clamp(0, records.length - 1)];
+    final baselineIdx = (_selectedBaselineIndex ?? 0).clamp(0, records.length - 1);
+    final currentIdx = (_selectedCurrentIndex ?? (records.length - 1)).clamp(0, records.length - 1);
+    final baselineRecord = records[baselineIdx];
+    final currentRecord = records[currentIdx];
 
     final baselinePhoto = baselineRecord.photoPaths.first;
     final currentPhoto = currentRecord.photoPaths.first;
@@ -376,17 +379,32 @@ class _ComparativePhotoViewState extends State<ComparativePhotoView> {
   }
 
   Widget _buildTimelineGallery(List<MeasurementRecord> records) {
+    final baselineIdx = (_selectedBaselineIndex ?? 0).clamp(0, records.length - 1);
+    final currentIdx = (_selectedCurrentIndex ?? (records.length - 1)).clamp(0, records.length - 1);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'HISTÓRICO DE REGISTROS',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w800,
-            color: AppColors.textSecondary,
-            letterSpacing: 0.8,
-          ),
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'HISTÓRICO DE REGISTROS',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textSecondary,
+                letterSpacing: 0.8,
+              ),
+            ),
+            Text(
+              'Toque: Depois • Segure: Antes',
+              style: TextStyle(
+                fontSize: 10,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         SizedBox(
@@ -398,17 +416,18 @@ class _ComparativePhotoViewState extends State<ComparativePhotoView> {
             itemBuilder: (context, index) {
               final r = records[index];
               final photo = r.photoPaths.first;
-              final isBaseline = index == _selectedBaselineIndex;
-              final isCurrent = index == _selectedCurrentIndex;
+              final isBaseline = index == baselineIdx;
+              final isCurrent = index == currentIdx;
 
               return GestureDetector(
                 onTap: () {
                   setState(() {
-                    if (_selectedBaselineIndex == index) {
-                      _selectedCurrentIndex = index;
-                    } else {
-                      _selectedBaselineIndex = index;
-                    }
+                    _selectedCurrentIndex = index;
+                  });
+                },
+                onLongPress: () {
+                  setState(() {
+                    _selectedBaselineIndex = index;
                   });
                 },
                 child: Container(
