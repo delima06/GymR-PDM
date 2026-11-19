@@ -917,9 +917,11 @@ class _ProfileViewState extends State<ProfileView> {
                               color: AppColors.primaryNeon.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: const Text(
-                              '+15kg PR',
-                              style: TextStyle(
+                            child: Text(
+                              vm.benchPressPR > 0
+                                  ? '${vm.benchPressPR.toStringAsFixed(0)}kg PR'
+                                  : '1RM & PRs',
+                              style: const TextStyle(
                                 color: AppColors.primaryNeon,
                                 fontSize: 9,
                                 fontWeight: FontWeight.w800,

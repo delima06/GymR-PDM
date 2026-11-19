@@ -326,7 +326,7 @@ class _DashboardViewState extends State<DashboardView> {
                               const SizedBox(height: 6),
                               Text(
                                 viewModel.completedSessionsCount > 0
-                                    ? 'Seu condicionamento e adesão estão 15% acima da média mensal.'
+                                    ? 'Você concluiu ${viewModel.completedSessionsCount} de 5 treinos da meta semanal (${((viewModel.completedSessionsCount / 5) * 100).clamp(0, 100).toInt()}%).'
                                     : 'Inicie seu primeiro treino para registrar volume e constância.',
                                 style: TextStyle(
                                   color: AppColors.textOnNeon.withValues(alpha: 0.85),
@@ -462,20 +462,20 @@ class _DashboardViewState extends State<DashboardView> {
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                CircleAvatar(
+                                const CircleAvatar(
                                   radius: 3,
                                   backgroundColor: AppColors.primaryNeon,
                                 ),
-                                SizedBox(width: 6),
+                                const SizedBox(width: 6),
                                 Flexible(
                                   child: Text(
-                                    'Meta semanal 80%',
+                                    'Meta semanal ${((viewModel.completedSessionsCount / 5) * 100).clamp(0, 100).toInt()}%',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 11,
                                       color: AppColors.textSecondary,
                                       fontWeight: FontWeight.w500,

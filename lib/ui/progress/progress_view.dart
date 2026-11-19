@@ -146,7 +146,7 @@ class _ProgressViewState extends State<ProgressView> {
 
                   // 2. Card de Destaque Superior Neon (Progresso Geral)
                   if (_selectedFilterIndex == 0 || _selectedFilterIndex == 2) ...[
-                    _buildNeonHighlightCard(),
+                    _buildNeonHighlightCard(vm),
                     const SizedBox(height: 22),
                   ],
 
@@ -238,7 +238,12 @@ class _ProgressViewState extends State<ProgressView> {
     );
   }
 
-  Widget _buildNeonHighlightCard() {
+  Widget _buildNeonHighlightCard(ProgressViewModel vm) {
+    const monthlyTarget = 16;
+    final completedCount = vm.sessions.length;
+    final progressRatio = (completedCount / monthlyTarget).clamp(0.0, 1.0);
+    final progressPct = (progressRatio * 100).toInt();
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -278,9 +283,11 @@ class _ProgressViewState extends State<ProgressView> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Sua evolução de força está 14% acima do mês passado com alta consistência.',
-                  style: TextStyle(
+                Text(
+                  completedCount > 0
+                      ? 'Você concluiu $completedCount treino(s) com ${vm.prs.length} recorde(s) registrados rumo à meta mensal.'
+                      : 'Finalize seu primeiro treino ou registre medidas para acompanhar sua evolução real.',
+                  style: const TextStyle(
                     color: Color(0xFF0D140E),
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -298,26 +305,26 @@ class _ProgressViewState extends State<ProgressView> {
                 width: 60,
                 height: 60,
                 child: CircularProgressIndicator(
-                  value: 0.92,
+                  value: progressRatio,
                   strokeWidth: 6,
                   strokeCap: StrokeCap.round,
                   backgroundColor: const Color(0xFF0D140E).withValues(alpha: 0.15),
                   valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF0D140E)),
                 ),
               ),
-              const Column(
+              Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '92%',
-                    style: TextStyle(
+                    '$progressPct%',
+                    style: const TextStyle(
                       color: Color(0xFF0D140E),
                       fontSize: 13,
                       fontWeight: FontWeight.w900,
                       height: 1,
                     ),
                   ),
-                  Text(
+                  const Text(
                     'META',
                     style: TextStyle(
                       color: Color(0xFF0D140E),
@@ -337,9 +344,15 @@ class _ProgressViewState extends State<ProgressView> {
   Widget _buildLoadEvolutionSection(BuildContext context, ProgressViewModel vm) {
     final matchingPR = vm.prs.where((p) =>
         p.exerciseName.toLowerCase().contains(vm.selectedExerciseName.toLowerCase()));
-    final gainText = matchingPR.isNotEmpty
-        ? '+${(matchingPR.first.maxWeightKg * 0.15).toInt()} kg'
-        : '--';
+    final points = vm.selectedExercisePoints;
+    String gainText = '--';
+    if (points.length >= 2) {
+      final delta = points.last.weightKg - points.first.weightKg;
+      final sign = delta >= 0 ? '+' : '';
+      gainText = '$sign${delta.toStringAsFixed(1)} kg';
+    } else if (matchingPR.isNotEmpty) {
+      gainText = 'PR ${matchingPR.first.maxWeightKg.toStringAsFixed(1)} kg';
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
