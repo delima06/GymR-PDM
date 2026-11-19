@@ -225,7 +225,7 @@ class ActiveWorkoutViewModel extends ChangeNotifier {
     } catch (_) {}
     await runZonedGuarded(() async {
       _audioPlayer ??= AudioPlayer();
-      await _audioPlayer!.stop();
+      await _audioPlayer!.setVolume(1.0);
       await _audioPlayer!.play(AssetSource('audio/rest_timer_done.wav'));
     }, (_, __) {});
   }

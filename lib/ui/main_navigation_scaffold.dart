@@ -45,6 +45,12 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
       ),
       ActiveWorkoutView(
         workoutId: _selectedWorkoutIdForActive,
+        onWorkoutFinished: () {
+          setState(() {
+            _selectedWorkoutIdForActive = null;
+            _currentIndex = 0; // Retorna à tela inicial após concluir o treino
+          });
+        },
       ),
       const ProgressView(),
       ProfileView(

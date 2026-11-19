@@ -10,8 +10,13 @@ import 'active_workout_view_model.dart';
 
 class ActiveWorkoutView extends StatefulWidget {
   final String? workoutId;
+  final VoidCallback? onWorkoutFinished;
 
-  const ActiveWorkoutView({super.key, this.workoutId});
+  const ActiveWorkoutView({
+    super.key,
+    this.workoutId,
+    this.onWorkoutFinished,
+  });
 
   @override
   State<ActiveWorkoutView> createState() => _ActiveWorkoutViewState();
@@ -28,14 +33,6 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
         vm.startWorkoutSession(widget.workoutId);
       }
     });
-  }
-
-  @override
-  void didUpdateWidget(covariant ActiveWorkoutView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.workoutId != null && widget.workoutId != oldWidget.workoutId) {
-      context.read<ActiveWorkoutViewModel>().startWorkoutSession(widget.workoutId);
-    }
   }
 
   void _confirmFinishWorkout(BuildContext context, ActiveWorkoutViewModel vm) {
@@ -75,6 +72,7 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
                     context.read<ProgressViewModel>().loadProgressData();
                     context.read<ProfileViewModel>().loadProfileData();
                   }
+                  widget.onWorkoutFinished?.call();
                   messenger.showSnackBar(
                     const SnackBar(
                       content: Text('Treino concluído com sucesso! Salvo no histórico.'),
@@ -556,7 +554,7 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
                             fillColor: isDone ? Colors.transparent : AppColors.surfaceContainer,
                           ),
                           onChanged: (val) {
-                            final parsed = double.tryParse(val);
+                            final parsed = double.tryParse(val.trim().replaceAll(',', '.'));
                             if (parsed != null) vm.updateSetWeight(exIndex, setIndex, parsed);
                           },
                         ),
@@ -588,11 +586,12 @@ class _ActiveWorkoutViewState extends State<ActiveWorkoutView> {
                   ),
                   SizedBox(
                     width: 50,
-                    child: Center(
-                      child: InkWell(
-                        key: ValueKey('check_button_${item.exercise.exerciseId}_${exIndex}_$setIndex'),
-                        onTap: () => vm.toggleSetCompleted(exIndex, setIndex),
-                        borderRadius: BorderRadius.circular(10),
+                    height: 48,
+                    child: InkWell(
+                      key: ValueKey('check_button_${item.exercise.exerciseId}_${exIndex}_$setIndex'),
+                      onTap: () => vm.toggleSetCompleted(exIndex, setIndex),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Center(
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           width: 38,
